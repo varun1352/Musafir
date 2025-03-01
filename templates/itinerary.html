@@ -1,13 +1,123 @@
 {% extends "base.html" %}
 {% block content %}
-  <div class="container">
-    <h2>Finalized Travel Itinerary</h2>
-    <div id="itineraryContent"></div>
+<div class="container">
+  <h2 class="itinerary-title">Finalized Travel Itinerary</h2>
+  
+  <div id="itineraryContent" class="itinerary-content"></div>
+  
+  <div class="action-buttons">
+    <a href="/" class="btn btn-primary">Back to Planner</a>
+    <button onclick="window.print()" class="btn btn-success">Print Itinerary</button>
   </div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.12/marked.min.js"></script>
-  <script>
-    const markdownText = `{{itinerary | safe }}`;
-    console.log(markdownText);
-    document.getElementById("itineraryContent").innerHTML = "<br>"+markdownText+"<br>";
-  </script>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.12/marked.min.js"></script>
+<script>
+  // Get the markdown text from the template
+  const markdownText = `{{itinerary | safe}}`;
+  
+  // Configure marked with options if needed
+  marked.setOptions({
+    breaks: true,  // Convert \n to <br>
+    gfm: true      // Enable GitHub Flavored Markdown
+  });
+  
+  // Convert markdown to HTML
+  document.getElementById("itineraryContent").innerHTML = marked.parse(markdownText);
+</script>
+
+<style>
+  .container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .itinerary-title {
+    color: #ff6b6b;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+  }
+  
+  .itinerary-content {
+    line-height: 1.6;
+    color: #333;
+  }
+  
+  /* Style markdown elements */
+  .itinerary-content h1, 
+  .itinerary-content h2, 
+  .itinerary-content h3 {
+    color: #ff6b6b;
+    margin-top: 1.5rem;
+  }
+  
+  .itinerary-content ul {
+    padding-left: 1.5rem;
+  }
+  
+  .itinerary-content li {
+    margin-bottom: 0.5rem;
+  }
+  
+  .itinerary-content strong {
+    color: #333;
+  }
+  
+  .itinerary-content hr {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 1.5rem 0;
+  }
+  
+  .action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  
+  .btn {
+    padding: 0.5rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .btn-primary {
+    background-color: #ff6b6b;
+    color: white;
+  }
+  
+  .btn-success {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .btn:hover {
+    opacity: 0.9;
+  }
+  
+  @media print {
+    .action-buttons {
+      display: none;
+    }
+    
+    body {
+      font-size: 12pt;
+    }
+    
+    .container {
+      box-shadow: none;
+      max-width: 100%;
+    }
+  }
+</style>
 {% endblock %}
