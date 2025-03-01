@@ -2,22 +2,82 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Musafir - Travel App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    /* Global Styles */
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #74ABE2, #5563DE);
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Header Styles */
+    header {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.8em;
+      color: #5563DE;
+    }
+    nav a {
+      margin: 0 10px;
+      text-decoration: none;
+      color: #5563DE;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+    nav a:hover {
+      color: #74ABE2;
+    }
+    /* Content Styles */
+    .content {
+      flex: 1;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 10px;
+      margin: 20px auto;
+      max-width: 1200px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    /* Footer Styles */
+    footer {
+      text-align: center;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.9);
+      font-size: 0.9em;
+    }
+  </style>
 </head>
 <body>
   <header>
     <h1>Musafir</h1>
     <nav>
-      <a href="{{ url_for('index') }}">Home</a> |
-      <a href="{{ url_for('google_auth') }}">Google Auth</a> |
-      <a href="{{ url_for('signup') }}">Sign Up</a> |
-      <a href="{{ url_for('itinerary') }}">Plan Trip</a> |
-      <a href="{{ url_for('map_view') }}">Map View</a> |
-      <a href="{{ url_for('dynamic_plan') }}">Dynamic Plan</a>
+      <a href="{{ url_for('index') }}">Home</a>
+      <a href="{{ url_for('google_auth') }}">Google Auth</a>
+      <a href="{{ url_for('signup') }}">Sign Up</a>
+      <a href="{{ url_for('view_itinerary') }}">Plan Trip</a>
     </nav>
   </header>
-  <hr>
-  {% block content %}{% endblock %}
-  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  
+  <div class="content">
+    {% block content %}
+    {% endblock %}
+  </div>
+  
+  <footer>
+    &copy; {{ current_year|default("2025") }} Musafir. All rights reserved.
+  </footer>
 </body>
 </html>

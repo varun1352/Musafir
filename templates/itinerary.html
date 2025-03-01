@@ -1,39 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Final Itinerary</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.12/marked.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 800px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
+{% extends "base.html" %}
+{% block content %}
+  <div class="container">
     <h2>Finalized Travel Itinerary</h2>
     <div id="itineraryContent"></div>
-</div>
-
-<script>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.12/marked.min.js"></script>
+  <script>
     const markdownText = `{{itinerary | safe }}`;
     console.log(markdownText);
     document.getElementById("itineraryContent").innerHTML = "<br>"+markdownText+"<br>";
-</script>
-
-</body>
-</html>
+  </script>
+{% endblock %}
