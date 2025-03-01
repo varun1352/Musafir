@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Musafir - Travel App</title>
+</head>
+<body>
+  <header>
+    <h1>Musafir</h1>
+    <nav>
+      <a href="{{ url_for('index') }}">Home</a> |
+      <a href="{{ url_for('itinerary') }}">Plan Trip</a> |
+      <a href="{{ url_for('map_view') }}">Map View</a> |
+      <a href="{{ url_for('dynamic_plan') }}">Dynamic Plan</a>
+    </nav>
+  </header>
+  <hr>
+  {% block content %}{% endblock %}
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

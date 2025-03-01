@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Plan Your Trip</h2>
+  <form id="itinerary-form" method="post" action="{{ url_for('itinerary') }}">
+    <textarea name="itinerary" id="itinerary-input" placeholder="Enter your trip details here..." rows="10" cols="50"></textarea>
+    <br>
+    <button type="submit">Process Trip</button>
+  </form>
+  <div id="response"></div>
+{% endblock %}

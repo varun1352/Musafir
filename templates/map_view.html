@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Map View</h2>
+  <!-- Placeholder for the map. In production, include the Leaflet.js library and its CSS -->
+  <div id="map" style="height: 500px;"></div>
+  <script>
+    // Example: Initialize a basic Leaflet map (ensure you add Leaflet.js in your production build)
+    var map = L.map('map').setView([40.7128, -74.0060], 13); // Center on New York City
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+  </script>
+{% endblock %}
