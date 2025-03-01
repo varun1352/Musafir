@@ -1,0 +1,27 @@
+# Node modules
+node_modules/
+
+# Environment variable files
+.env
+*.env
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+
+# Build output directories
+build/
+dist/
+
+# Python caches (if you're using Python for the backend)
+__pycache__/
+*.py[cod]
+
+# SQLite database files (if you use SQLite)
+*.sqlite3
+
+# VSCode settings
+.vscode/
+
+# macOS system files
+.DS_Store
