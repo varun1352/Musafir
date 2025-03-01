@@ -1,56 +1,103 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
-from models.database import init_db  # Function to initialize your SQLite database
+CEREBRAS_API_URL = "https://api.cerebras.net/v1/generate"  # Replace with the actual API endpoint
+CEREBRAS_API_KEY = ""  # Replace with your API key
 
+import os
+from flask import Flask, render_template, request, jsonify
+from werkzeug.utils import secure_filename
+from cerebras.cloud.sdk import Cerebras
+
+# Initialize Flask app
 app = Flask(__name__)
-app.config.from_pyfile('config.py')
 
-# Initialize the database
-init_db()
+UPLOAD_FOLDER = "uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-@app.route('/')
+# Initialize Cerebras API client
+client = Cerebras(api_key=CEREBRAS_API_KEY)
+
+user_itinerary = []  # Stores user inputs for refining the itinerary
+final_itinerary = ""  # Stores the finalized itinerary
+
+def call_cerebras_api(messages):
+    """Calls the Cerebras API with the given messages array."""
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=messages,
+            model="llama3.1-8b"
+        )
+        return chat_completion.choices[0].message.content  # ✅ Corrected
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("travelPlanner.html")
 
-# Google Auth page
-@app.route('/google-auth')
-def google_auth():
-    return render_template('google_auth.html')
+@app.route("/process_text", methods=["POST"])
+def process_text():
+    """Handles user messages to refine the itinerary."""
+    user_text = request.json.get("message", "")
+    if not user_text:
+        return jsonify({"error": "No message provided"}), 400
 
-# Placeholder for Google OAuth redirect
-@app.route('/google-auth/redirect')
-def google_auth_redirect():
-    # In a real implementation, you would redirect to the Google OAuth endpoint here.
-    # After a successful OAuth process, you would then redirect the user to the signup page.
-    return redirect(url_for('signup'))
+    user_itinerary.append(user_text)
 
-# Signup page with user preferences
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
-    if request.method == 'POST':
-        # Process signup form data
-        username = request.form.get('username')
-        email = request.form.get('email')
-        preference = request.form.get('preference')
-        # Here you would add code to save the user details to your database
-        # For now, simply redirect to the index page
-        return redirect(url_for('index'))
-    return render_template('signup.html')
+    messages = [
+        {"role": "system", "content": "You are a travel assistant helping users plan a structured travel itinerary."},
+        {"role": "user", "content": f"Refine this trip itinerary based on the following user input:\n\n{user_text}\n\nEnsure clarity and keep a structured format."}
+    ]
 
-@app.route('/itinerary', methods=['GET', 'POST'])
-def itinerary():
-    if request.method == 'POST':
-        itinerary_text = request.form.get('itinerary')
-        json_itinerary = {"status": "success", "itinerary": itinerary_text}
-        return jsonify(json_itinerary)
-    return render_template('itinerary.html')
+    itinerary_response = call_cerebras_api(messages)
 
-@app.route('/map')
-def map_view():
-    return render_template('map_view.html')
+    return jsonify({"response": itinerary_response})
 
-@app.route('/dynamic')
-def dynamic_plan():
-    return render_template('dynamic_plan.html')
+@app.route("/upload_pdf", methods=["POST"])
+def upload_pdf():
+    """Handles PDF uploads and extracts structured itinerary."""
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
 
-if __name__ == '__main__':
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "No file selected"}), 400
+
+    filename = secure_filename(file.filename)
+    file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+    file.save(file_path)
+
+    messages = [
+        {"role": "system", "content": "You are a travel assistant that processes uploaded PDF itineraries."},
+        {"role": "user", "content": f"Extract and summarize the travel itinerary from this uploaded PDF file: {file.filename}. Structure it properly and retain all relevant details."}
+    ]
+
+    extracted_itinerary = call_cerebras_api(messages)
+    user_itinerary.append(extracted_itinerary)
+
+    return jsonify({"response": extracted_itinerary})
+
+@app.route("/finalize_trip", methods=["POST"])
+def finalize_trip():
+    """Generates a final markdown-formatted itinerary."""
+    global final_itinerary
+
+    combined_itinerary = "\n".join(user_itinerary)
+
+    messages = [
+        {"role": "system", "content": "You are an expert travel planner. Your task is to generate a structured, well-formatted markdown travel itinerary."},
+        {"role": "user", "content": f"Generate a final, markdown-formatted itinerary based on this travel plan:\n\n{combined_itinerary}\n\n"
+                                     "Use clear headers, bullet points, and markdown elements for easy readability. The final itinerary should look like a well-structured travel guide."}
+    ]
+
+    final_itinerary = call_cerebras_api(messages)
+    print(final_itinerary)
+
+    return jsonify({"finalized": True})
+
+@app.route("/view_itinerary")
+def view_itinerary():
+    """Displays the finalized itinerary in markdown format."""
+    return render_template("itinerary.html", itinerary=final_itinerary)
+
+if __name__ == "__main__":
     app.run(debug=True)

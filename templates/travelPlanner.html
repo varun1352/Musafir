@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Itinerary Chat</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f4f4;
+        }
+        .chat-container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .chat-box {
+            height: 500px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: #fff;
+        }
+        .message {
+            padding: 10px 15px;
+            border-radius: 15px;
+            margin: 5px 0;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .user-message {
+            align-self: flex-end;
+            background: #007bff;
+            color: white;
+        }
+        .bot-message {
+            align-self: flex-start;
+            background: #e9ecef;
+            color: black;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .input-container input {
+            flex: 1;
+        }
+        .file-label {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container mt-5">
+    <h4 class="text-center">Travel Itinerary Chat</h4>
+    <div class="chat-box" id="chatBox">
+        <!-- Messages will be added here dynamically -->
+    </div>
+
+    <div class="input-container">
+        <input type="file" id="pdfFile" hidden>
+        <label for="pdfFile" class="btn btn-outline-secondary file-label">📎 Upload PDF</label>
+        <input type="text" id="chatInput" class="form-control" placeholder="Type a message...">
+        <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+        <button class="btn btn-success" onclick="finalizeTrip()">Finalize Trip</button>
+    </div>
+</div>
+
+<script>
+    document.getElementById("pdfFile").addEventListener("change", uploadPDF);
+
+    function addMessage(text, sender) {
+        let chatBox = document.getElementById("chatBox");
+        let messageDiv = document.createElement("div");
+        messageDiv.classList.add("message", sender === "user" ? "user-message" : "bot-message");
+        messageDiv.innerHTML = text;
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function sendMessage() {
+        let userInput = document.getElementById("chatInput").value;
+        if (!userInput.trim()) return;
+
+        addMessage(userInput, "user");
+
+        fetch("/process_text", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: userInput })
+        })
+        .then(response => response.json())
+        .then(data => {
+            addMessage(data.response, "bot");
+        })
+        .catch(error => console.error("Error:", error));
+
+        document.getElementById("chatInput").value = "";
+    }
+
+    function uploadPDF() {
+        let fileInput = document.getElementById("pdfFile");
+        let file = fileInput.files[0];
+        if (!file) return;
+
+        addMessage("📎 Uploaded: " + file.name, "user");
+
+        let formData = new FormData();
+        formData.append("file", file);
+
+        fetch("/upload_pdf", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            addMessage(data.response, "bot");
+        })
+        .catch(error => console.error("Error:", error));
+    }
+
+    function finalizeTrip() {
+        fetch("/finalize_trip", {
+            method: "POST"
+        })
+        .then(response => response.json())
+        .then(data => {
+            window.open("/view_itinerary", "_blank");
+        })
+        .catch(error => console.error("Error:", error));
+    }
+</script>
+
+</body>
+</html>
