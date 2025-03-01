@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Sign Up</h2>
+  <form action="{{ url_for('signup') }}" method="post">
+    <div>
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username" required>
+    </div>
+    <div>
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email" required>
+    </div>
+    <h3>Your Travel Preferences</h3>
+    <p>Please select your preferred travel style:</p>
+    <div>
+      <input type="radio" id="adventure" name="preference" value="adventure" required>
+      <label for="adventure">Adventure</label>
+      <p>Looking for thrills and new experiences.</p>
+    </div>
+    <div>
+      <input type="radio" id="relaxation" name="preference" value="relaxation">
+      <label for="relaxation">Relaxation</label>
+      <p>Prefer laid-back, stress-free environments.</p>
+    </div>
+    <div>
+      <input type="radio" id="cultural" name="preference" value="cultural">
+      <label for="cultural">Cultural</label>
+      <p>Interested in history, art, and local customs.</p>
+    </div>
+    <div>
+      <input type="radio" id="family" name="preference" value="family">
+      <label for="family">Family Friendly</label>
+      <p>Looking for experiences suitable for all ages.</p>
+    </div>
+    <div>
+      <input type="radio" id="nightlife" name="preference" value="nightlife">
+      <label for="nightlife">Nightlife</label>
+      <p>Prefer places with vibrant night-time activities.</p>
+    </div>
+    <div>
+      <button type="submit">Sign Up</button>
+    </div>
+  </form>
+{% endblock %}
