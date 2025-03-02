@@ -1,72 +1,99 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="explore-container">
+  <!-- Search and Filter Section -->
   <div class="explore-header">
-    <h1>Explore Curated Trips</h1>
-    <p>Discover hand-picked itineraries from experienced travelers</p>
+    <h1>Explore Amazing Destinations</h1>
+    <p>Discover curated trips and connect with fellow travelers</p>
+    
+    <div class="search-filters">
+      <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Search destinations, activities, or interests...">
+      </div>
+      
+      <div class="filter-tags">
+        <button class="filter-tag active">All</button>
+        <button class="filter-tag">Adventure</button>
+        <button class="filter-tag">Culture</button>
+        <button class="filter-tag">Nature</button>
+        <button class="filter-tag">Urban</button>
+        <button class="filter-tag">Beach</button>
+      </div>
+    </div>
   </div>
 
+  <!-- Featured Section -->
   <section class="featured-section">
-    <h2>Featured Itineraries</h2>
+    <h2>Featured Experiences</h2>
     <div class="featured-grid">
-      {% for trip in featured[:3] %}
+      {% for trip in featured %}
       <div class="featured-card">
         <div class="featured-image">
-          <img src="/static/images/{{ trip.image }}" alt="{{ trip.title }}">
-          <div class="featured-overlay">
-            <span class="featured-duration">
+          <img src="{{ trip.image }}" alt="{{ trip.title }}">
+          <div class="featured-badges">
+            <span class="badge-duration">
               <i class="fas fa-clock"></i>
               {{ trip.duration }}
+            </span>
+            <span class="badge-rating">
+              <i class="fas fa-star"></i>
+              {{ trip.rating }}
             </span>
           </div>
         </div>
         <div class="featured-content">
           <h3>{{ trip.title }}</h3>
-          <div class="featured-rating">
-            <div class="stars">
-              {% for i in range(5) %}
-              <i class="fas fa-star {% if i < trip.rating|int %}filled{% endif %}"></i>
-              {% endfor %}
-            </div>
-            <span>{{ trip.rating }} ({{ trip.reviews }})</span>
-          </div>
           <div class="featured-highlights">
             {% for highlight in trip.highlights %}
             <span class="highlight-tag">{{ highlight }}</span>
             {% endfor %}
           </div>
-          <a href="#" class="btn-primary">View Itinerary</a>
+          <div class="featured-meta">
+            <span>
+              <i class="fas fa-user-friends"></i>
+              {{ trip.reviews }} travelers
+            </span>
+            <a href="#" class="btn-primary btn-sm">View Details</a>
+          </div>
         </div>
       </div>
       {% endfor %}
     </div>
   </section>
 
-  {% for category in categories %}
-  <section class="category-section">
-    <div class="category-header">
-      <h2>{{ category.name }}</h2>
-      <a href="#" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
-    </div>
-    <div class="trips-grid">
-      {% for trip in category.trips %}
-      <div class="trip-card">
-        <div class="trip-image">
-          <img src="/static/images/{{ trip.image }}" alt="{{ trip.title }}">
-        </div>
-        <div class="trip-content">
-          <h3>{{ trip.title }}</h3>
-          <div class="trip-info">
-            <span><i class="fas fa-clock"></i> {{ trip.duration }}</span>
-            <span><i class="fas fa-star"></i> {{ trip.rating }}</span>
-          </div>
-          <a href="#" class="btn-outline">Learn More</a>
-        </div>
+  <!-- Categories Section -->
+  <section class="categories-section">
+    {% for category in categories %}
+    <div class="category-block">
+      <div class="category-header">
+        <h2>{{ category.name }}</h2>
+        <a href="#" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
       </div>
-      {% endfor %}
+      
+      <div class="trips-grid">
+        {% for trip in category.trips %}
+        <div class="trip-card">
+          <div class="trip-image">
+            <img src="{{ trip.image }}" alt="{{ trip.title }}">
+            <div class="trip-overlay">
+              <span class="trip-duration">{{ trip.duration }}</span>
+              <span class="trip-rating">
+                <i class="fas fa-star"></i>
+                {{ trip.rating }}
+              </span>
+            </div>
+          </div>
+          <div class="trip-content">
+            <h3>{{ trip.title }}</h3>
+            <a href="#" class="btn-outline btn-sm">Learn More</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
     </div>
+    {% endfor %}
   </section>
-  {% endfor %}
 </div>
 
 <style>
@@ -76,14 +103,15 @@
   padding: 2rem;
 }
 
+/* Header and Search */
 .explore-header {
   text-align: center;
   margin-bottom: 3rem;
 }
 
 .explore-header h1 {
-  color: var(--primary);
   font-size: 2.5rem;
+  color: var(--primary);
   margin-bottom: 0.5rem;
   font-family: 'Quicksand', sans-serif;
 }
@@ -91,16 +119,74 @@
 .explore-header p {
   color: var(--text-light);
   font-size: 1.1rem;
+  margin-bottom: 2rem;
 }
 
+.search-filters {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.search-bar {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem;
+  border: 2px solid var(--bg-light);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.search-bar input:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+.search-bar i {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+}
+
+.filter-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.filter-tag {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 2rem;
+  background: var(--bg-light);
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-tag:hover,
+.filter-tag.active {
+  background: var(--primary);
+  color: white;
+}
+
+/* Featured Section */
 .featured-section {
   margin-bottom: 4rem;
 }
 
 .featured-section h2 {
+  font-size: 2rem;
   color: var(--text-dark);
-  font-size: 1.8rem;
   margin-bottom: 2rem;
+  text-align: center;
 }
 
 .featured-grid {
@@ -114,83 +200,95 @@
   border-radius: var(--radius);
   overflow: hidden;
   box-shadow: var(--shadow);
-  transition: transform 0.2s;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .featured-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
 }
 
 .featured-image {
   position: relative;
-  height: 200px;
+  height: 250px;
+  overflow: hidden;
 }
 
 .featured-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
-.featured-overlay {
+.featured-card:hover .featured-image img {
+  transform: scale(1.05);
+}
+
+.featured-badges {
   position: absolute;
   top: 1rem;
   right: 1rem;
+  display: flex;
+  gap: 0.5rem;
 }
 
-.featured-duration {
-  background: rgba(255, 255, 255, 0.9);
+.badge-duration,
+.badge-rating {
+  background: rgba(255,255,255,0.95);
   padding: 0.5rem 1rem;
   border-radius: 2rem;
+  font-size: 0.875rem;
   font-weight: 500;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .featured-content {
   padding: 1.5rem;
-}
-
-.featured-content h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: var(--text-dark);
-}
-
-.featured-rating {
+  flex: 1;
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.stars {
-  color: #ffd700;
-}
-
-.stars .fa-star.filled {
-  color: #ffd700;
+  flex-direction: column;
 }
 
 .featured-highlights {
+  margin: 1rem 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
 }
 
 .highlight-tag {
-  background: var(--bg-light);
+  background: var(--primary-light);
+  color: var(--primary);
   padding: 0.25rem 0.75rem;
   border-radius: 1rem;
   font-size: 0.875rem;
-  color: var(--text-light);
+  transition: all 0.2s ease;
 }
 
-.category-section {
-  margin-bottom: 3rem;
+.highlight-tag:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.featured-meta {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--bg-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Categories Section */
+.category-block {
+  margin-bottom: 4rem;
 }
 
 .category-header {
@@ -201,8 +299,8 @@
 }
 
 .category-header h2 {
+  font-size: 1.75rem;
   color: var(--text-dark);
-  font-size: 1.5rem;
 }
 
 .view-all {
@@ -225,15 +323,16 @@
   border-radius: var(--radius);
   overflow: hidden;
   box-shadow: var(--shadow);
-  transition: transform 0.2s;
+  transition: transform 0.3s ease;
 }
 
 .trip-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
 }
 
 .trip-image {
-  height: 150px;
+  position: relative;
+  height: 200px;
 }
 
 .trip-image img {
@@ -242,46 +341,59 @@
   object-fit: cover;
 }
 
+.trip-overlay {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  right: 1rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.trip-duration,
+.trip-rating {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
 .trip-content {
-  padding: 1rem;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .trip-content h3 {
   font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
   color: var(--text-dark);
+  margin: 0;
 }
 
-.trip-info {
-  display: flex;
-  gap: 1rem;
-  color: var(--text-light);
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
-}
-
-.trip-info span {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
+/* Responsive Design */
 @media (max-width: 768px) {
   .explore-container {
     padding: 1rem;
   }
-  
+
   .explore-header h1 {
     font-size: 2rem;
   }
-  
+
   .featured-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .trips-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: 1fr;
+  }
+
+  .category-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
   }
 }
 </style>

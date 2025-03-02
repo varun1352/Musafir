@@ -187,6 +187,7 @@
     }
   });
 
+  // Update the sendMessage function
   function sendMessage() {
     let chatInput = document.getElementById("chatInput");
     let userInput = chatInput.value;
@@ -203,7 +204,7 @@
     chatBox.appendChild(typingIndicator);
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    fetch("/process_text", {
+    fetch("/process_text", {  // This endpoint remains the same as it's the API endpoint
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: userInput })
@@ -214,13 +215,11 @@
       chatBox.removeChild(typingIndicator);
       
       // Add bot response with markdown parsing
-      addMessage(data.response, "bot");
+      addMessage(data.response || "I'm processing your request. Please wait a moment.", "bot");
     })
     .catch(error => {
       console.error("Error:", error);
-      // Remove typing indicator
       chatBox.removeChild(typingIndicator);
-      // Show error message
       addMessage("Sorry, there was an error processing your request. Please try again.", "bot");
     });
 
@@ -251,7 +250,7 @@
     let formData = new FormData();
     formData.append("file", file);
 
-    fetch("/upload_pdf", {
+    fetch("/api/upload_pdf", {
       method: "POST",
       body: formData
     })
@@ -261,7 +260,7 @@
       chatBox.removeChild(typingIndicator);
       
       // Add bot response with markdown parsing
-      addMessage(data.response, "bot");
+      addMessage(data.response || "I've received your PDF and am analyzing it.", "bot");
     })
     .catch(error => {
       console.error("Error:", error);
@@ -276,8 +275,8 @@
   }
 
   // On Finalize, fetch the final itinerary from the backend and redirect to itinerary page
+  // Update the finalizeTrip function
   function finalizeTrip() {
-    // Show loading overlay
     const loadingOverlay = document.createElement("div");
     loadingOverlay.className = "loading-overlay";
     loadingOverlay.innerHTML = `
@@ -288,22 +287,23 @@
     `;
     document.body.appendChild(loadingOverlay);
     
-    fetch("/finalize_trip", { method: "POST" })
+    fetch("/finalize_trip", {  // Updated endpoint
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ finalize: true })
+    })
       .then(response => response.json())
       .then(data => {
-        // Remove loading overlay
         document.body.removeChild(loadingOverlay);
         
         if (data.finalized) {
-          // Redirect to the itinerary view page
           window.location.href = "/view_itinerary";
         } else {
-          alert("No final itinerary was generated. Please try again.");
+          alert(data.message || "No final itinerary was generated. Please try again.");
         }
       })
       .catch(error => {
         console.error("Error during finalizeTrip:", error);
-        // Remove loading overlay
         document.body.removeChild(loadingOverlay);
         alert("There was an error finalizing your trip. Please try again.");
       });
@@ -311,6 +311,46 @@
 </script>
 
 <style>
+  /* Add this to fix UI issues */
+  .btn, .btn-primary, .btn-outline, .btn-success, .btn-reject, .btn-accept, .btn-end {
+    text-decoration: none !important;
+  }
+  
+  .message-content a {
+    text-decoration: none;
+    color: var(--primary);
+    font-weight: 500;
+  }
+  
+  .message-content a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Fix the chat interface */
+  .chat-container {
+    border: 1px solid #eee;
+  }
+  
+  .chat-box {
+    background: white;
+  }
+  
+  .bot-message .message-content {
+    border: 1px solid #eee;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  
+  /* Improve the input area */
+  .input-wrapper {
+    border: 1px solid #eee;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  
+  /* Fix the tips section */
+  .tip-card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
   /* Welcome Section */
   .welcome-section {
     text-align: center;

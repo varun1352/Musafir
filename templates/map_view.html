@@ -37,8 +37,31 @@
       </div>
     </div>
 
+    <!-- Add this in the people-list section -->
     <div id="people-list" class="people-list">
-      <!-- People cards will be added here -->
+      {% if map_data and map_data.days %}
+        {% for place in map_data.days[current_day|default(0)].places %}
+          {% if place.visitors %}
+            {% for visitor in place.visitors %}
+            <div class="person-card">
+              <div class="person-avatar">
+                {{ visitor.name[0] }}
+              </div>
+              <div class="person-info">
+                <div class="person-name">{{ visitor.name }}</div>
+                <div class="person-time">{{ place.time }} at {{ place.name }}</div>
+              </div>
+              <button class="connect-btn">Connect</button>
+            </div>
+            {% endfor %}
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <i class="fas fa-users"></i>
+          <p>No travelers found nearby</p>
+        </div>
+      {% endif %}
     </div>
   </div>
 

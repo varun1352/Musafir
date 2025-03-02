@@ -3,6 +3,8 @@ import os
 from datetime import datetime
 import json
 from threading import local
+from datetime import timedelta
+from math import radians, cos
 
 class Database:
     _thread_local = local()
@@ -817,4 +819,52 @@ class Database:
                     md_content += "\n"
         
         return md_content
+
+    def store_json_itinerary(self, json_data, user_id=None):
+        """Store a JSON itinerary in the database."""
+        try:
+            trip = json_data.get('trip', {})
+            destination = trip.get('destination', 'Unknown')
+            dates = trip.get('dates', {})
+            start_date = dates.get('start')
+            end_date = dates.get('end')
+
+            # Create trip in database
+            trip_id = self.create_trip(
+                user_id=user_id,
+                title=f"Trip to {destination}",
+                destination=destination,
+                start_date=start_date,
+                end_date=end_date,
+                status='upcoming'
+            )
+
+            # Store itinerary items
+            for day in trip.get('itinerary', []):
+                day_num = day['day']
+                for activity in day.get('activities', []):
+                    # Create or get place
+                    place_data = {
+                        'name': activity['place'],
+                        'description': activity['description'],
+                        'latitude': 0.0,  # You would need to get real coordinates
+                        'longitude': 0.0,  # You would need to get real coordinates
+                    }
+                    place_id = self.create_place(**place_data)
+
+                    # Add itinerary item
+                    self.add_itinerary_item(
+                        trip_id=trip_id,
+                        place_id=place_id,
+                        day=day_num,
+                        start_time=activity['time'],
+                        end_time=activity['time'],  # You would calculate this from expected_time
+                        notes=activity['description'],
+                        order_index=day_num
+                    )
+
+            return trip_id
+        except Exception as e:
+            print(f"Error storing itinerary: {str(e)}")
+            return None
 

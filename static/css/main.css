@@ -61,6 +61,7 @@
   box-shadow: var(--shadow);
   transform: translateX(0);
   transition: all 0.3s ease;
+  border: 1px solid #eee;
 }
 
 .timeline-content:hover {
@@ -125,5 +126,76 @@
   background: var(--primary);
   animation: timelineProgress 1s ease-out forwards;
   z-index: 0;
+}
+
+/* Fix UI issues */
+a {
+  text-decoration: none !important;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+.btn,
+.btn-primary,
+.btn-outline,
+.btn-success {
+  text-decoration: none !important;
+}
+
+/* Fix button hover states */
+.btn:hover,
+.btn-primary:hover,
+.btn-outline:hover,
+.btn-success:hover {
+  text-decoration: none !important;
+}
+
+/* Fix buttons */
+.timeline-button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  margin-top: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.timeline-button:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+/* Fix chat interface */
+.chat-container {
+  border: 1px solid #eee;
+}
+
+.chat-box {
+  background: white;
+}
+
+.bot-message .message-content {
+  border: 1px solid #eee;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Improve input area */
+.input-wrapper {
+  border: 1px solid #eee;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Fix tips section */
+.tip-card {
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 

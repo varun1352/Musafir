@@ -35,12 +35,16 @@
           </div>
           <div class="trip-dates">
             <i class="fas fa-calendar"></i>
-            <span>{{ trip.dates }}</span>
+            <span>{{ trip.start_date }} - {{ trip.end_date }}</span>
           </div>
           <div class="trip-actions">
-            <a href="#" class="btn-outline">View Itinerary</a>
+            <a href="{{ url_for('view_itinerary', trip_id=trip.id) }}" class="btn-outline">
+              View Itinerary
+            </a>
             {% if trip.status == "upcoming" %}
-            <a href="#" class="btn-primary">Modify</a>
+            <a href="{{ url_for('map_view', trip_id=trip.id) }}" class="btn-primary">
+              View Map
+            </a>
             {% endif %}
           </div>
         </div>

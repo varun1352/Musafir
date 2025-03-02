@@ -263,11 +263,63 @@ function formatTime(date) {
   })
 }
 
+// Update the finishPlanning function
 function finishPlanning() {
-  // Store the accepted places in localStorage or send to backend
-  localStorage.setItem("plannedPlaces", JSON.stringify(acceptedPlaces))
-  // Redirect to map view
-  window.location.href = "/map"
+  const loadingOverlay = document.createElement("div")
+  loadingOverlay.className = "loading-overlay"
+  loadingOverlay.innerHTML = `
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <p>Saving your itinerary...</p>
+    </div>
+  `
+  document.body.appendChild(loadingOverlay)
+
+  // Convert accepted places to the format expected by the backend
+  const itinerary = {
+    trip: {
+      destination: "Custom Trip",
+      dates: {
+        start: new Date().toISOString().split("T")[0],
+        end: new Date().toISOString().split("T")[0],
+      },
+      itinerary: [
+        {
+          day: 1,
+          date: new Date().toISOString().split("T")[0],
+          activities: acceptedPlaces.map((place) => ({
+            time: calculateTimeSlot(0, place.timeSpent).split(" - ")[0],
+            place: place.name,
+            description: place.description,
+            expected_time: `${place.timeSpent} hours`,
+          })),
+        },
+      ],
+    },
+  }
+
+  // Send to backend
+  fetch("/finalize_trip", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(itinerary),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      document.body.removeChild(loadingOverlay)
+      if (data.finalized) {
+        window.location.href = "/view_itinerary"
+      } else {
+        alert("Failed to save itinerary. Please try again.")
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error)
+      document.body.removeChild(loadingOverlay)
+      alert("An error occurred. Please try again.")
+    })
 }
 
 // Add custom styles for new elements

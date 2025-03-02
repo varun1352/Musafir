@@ -112,10 +112,12 @@
       left: 0;
       background-color: var(--primary);
       transition: width 0.3s ease;
+      opacity: 0; /* Start with invisible underline */
     }
     
     nav a:hover::after {
       width: 100%;
+      opacity: 1; /* Show underline only on hover */
     }
 
     /* User Menu */
@@ -407,6 +409,16 @@
         font-size: 0.9rem;
       }
     }
+
+    /* Remove underlines from buttons */
+    .btn, .btn-primary, .btn-outline, .btn-success {
+      text-decoration: none;
+    }
+
+    /* Fix user dropdown items */
+    .user-dropdown-item {
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
@@ -418,7 +430,7 @@
     <nav>
       <a href="{{ url_for('index') }}"><i class="fas fa-home"></i> <span>Home</span></a>
       <a href="{{ url_for('map_view') }}"><i class="fas fa-map-marked-alt"></i> <span>Map View</span></a>
-      <a href="{{ url_for('day_planner') }}"><i class="fas fa-calendar-alt"></i> <span>Day Planner</span></a>
+      <a href="{{ url_for('travel_planner') }}"><i class="fas fa-calendar-alt"></i> <span>Plan a Trip</span></a>
       <a href="{{ url_for('explore') }}"><i class="fas fa-compass"></i> <span>Explore</span></a>
       <a href="{{ url_for('about') }}"><i class="fas fa-info-circle"></i> <span>About</span></a>
       

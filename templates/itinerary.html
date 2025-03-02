@@ -3,11 +3,17 @@
 <div class="itinerary-container">
   <div class="itinerary-header">
     <h1 class="itinerary-title">Your Travel Itinerary</h1>
+    <!-- Add this in the itinerary actions section -->
     <div class="itinerary-actions">
       <button onclick="window.print()" class="btn btn-success">
         <i class="fas fa-print"></i> Print Itinerary
       </button>
-      <a href="/" class="btn btn-primary">
+      {% if trip %}
+        <a href="{{ url_for('map_view', trip_id=trip.id) }}" class="btn btn-primary">
+          <i class="fas fa-map-marked-alt"></i> View on Map
+        </a>
+      {% endif %}
+      <a href="{{ url_for('travel_planner') }}" class="btn btn-outline">
         <i class="fas fa-arrow-left"></i> Back to Planner
       </a>
     </div>
@@ -18,8 +24,11 @@
   </div>
   
   <div class="share-section">
-    <h3>Share Your Itinerary</h3>
+    <h3>Share & Connect</h3>
     <div class="share-buttons">
+      <a href="{{ url_for('map_view', trip_id=trip.id) }}" class="btn btn-primary share-btn">
+        <i class="fas fa-users"></i> Find Travel Buddies
+      </a>
       <button class="btn btn-outline share-btn">
         <i class="fas fa-envelope"></i> Email
       </button>
@@ -32,6 +41,14 @@
     </div>
   </div>
 </div>
+
+{% if trip %}
+  <a href="{{ url_for('map_view', trip_id=trip.id) }}" class="btn btn-primary share-btn">
+    View Map
+  </a>
+{% else %}
+  <p>Trip details not available.</p>
+{% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
 <script>
@@ -131,300 +148,335 @@
 </script>
 
 <style>
-  /* Itinerary Container */
-  .itinerary-container {
-    width: 100%;
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 1rem;
-    animation: fadeIn 0.8s ease-out;
+/* Itinerary Container */
+.itinerary-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  animation: fadeIn 0.8s ease-out;
+}
+
+/* Itinerary Header */
+.itinerary-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.itinerary-title {
+  color: var(--primary);
+  font-size: 2.2rem;
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 700;
+  margin: 0;
+}
+
+.itinerary-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Paper Effect */
+.itinerary-paper {
+  background-color: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 3rem;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.itinerary-paper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--primary);
+}
+
+/* Itinerary Content Styling */
+.itinerary-content {
+  line-height: 1.6;
+  color: var(--text-dark);
+}
+
+/* Table of Contents */
+.toc {
+  background-color: var(--bg-light);
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  margin-bottom: 2rem;
+  border-left: 3px solid var(--primary);
+}
+
+.toc h3 {
+  margin-top: 0;
+  color: var(--primary);
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.toc ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.toc li {
+  margin-bottom: 0.5rem;
+}
+
+.toc a {
+  color: var(--text-dark);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.toc a:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.toc-h1 {
+  font-weight: bold;
+}
+
+.toc-h2 {
+  padding-left: 1.5rem;
+}
+
+.toc-h3 {
+  padding-left: 3rem;
+  font-size: 0.9rem;
+}
+
+/* Markdown Styling */
+.itinerary-content h1, 
+.itinerary-content h2, 
+.itinerary-content h3 {
+  color: var(--primary);
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.itinerary-content h1 {
+  font-size: 1.8rem;
+  border-bottom: 2px solid var(--primary-light);
+  padding-bottom: 0.5rem;
+}
+
+.itinerary-content h2 {
+  font-size: 1.5rem;
+}
+
+.itinerary-content h3 {
+  font-size: 1.2rem;
+}
+
+.itinerary-content p {
+  margin-bottom: 1rem;
+}
+
+.itinerary-content ul, 
+.itinerary-content ol {
+  padding-left: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.itinerary-content li {
+  margin-bottom: 0.5rem;
+}
+
+.itinerary-content strong {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.itinerary-content em {
+  font-style: italic;
+}
+
+.itinerary-content blockquote {
+  border-left: 4px solid var(--primary-light);
+  padding-left: 1rem;
+  margin-left: 0;
+  margin-right: 0;
+  font-style: italic;
+  color: var(--text-light);
+}
+
+.itinerary-content hr {
+  border: 0;
+  height: 1px;
+  background-color: #eee;
+  margin: 2rem 0;
+}
+
+.itinerary-content img {
+  max-width: 100%;
+  border-radius: var(--radius);
+  margin: 1.5rem 0;
+}
+
+.itinerary-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+.itinerary-content th, 
+.itinerary-content td {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+}
+
+.itinerary-content th {
+  background-color: var(--primary-light);
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+.itinerary-content tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+/* Share Section */
+.share-section {
+  background-color: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  text-align: center;
+  margin-bottom: 2rem;
+  animation: slideUp 0.5s ease-out;
+}
+
+.share-section h3 {
+  color: var(--primary);
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.share-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.share-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.share-btn:hover {
+  transform: translateY(-2px);
+}
+
+.share-btn i {
+  font-size: 1.1rem;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  
-  /* Itinerary Header */
-  .itinerary-header {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    gap: 1rem;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  .itinerary-title {
-    color: var(--primary);
-    font-size: 2.2rem;
-    font-family: 'Quicksand', sans-serif;
-    font-weight: 700;
-    margin: 0;
-  }
-  
-  .itinerary-actions {
-    display: flex;
-    gap: 1rem;
-  }
-  
-  /* Paper Effect */
-  .itinerary-paper {
-    background-color: white;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 3rem;
-    margin-bottom: 2rem;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .itinerary-paper::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: var(--primary);
-  }
-  
-  /* Itinerary Content Styling */
-  .itinerary-content {
-    line-height: 1.6;
-    color: var(--text-dark);
-  }
-  
-  /* Table of Contents */
-  .toc {
-    background-color: var(--bg-light);
-    padding: 1.5rem;
-    border-radius: var(--radius);
-    margin-bottom: 2rem;
-    border-left: 3px solid var(--primary);
-  }
-  
-  .toc h3 {
-    margin-top: 0;
-    color: var(--primary);
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
-  }
-  
-  .toc ul {
-    list-style-type: none;
-    padding-left: 0;
-  }
-  
-  .toc li {
-    margin-bottom: 0.5rem;
-  }
-  
-  .toc a {
-    color: var(--text-dark);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  
-  .toc a:hover {
-    color: var(--primary);
-    text-decoration: underline;
-  }
-  
-  .toc-h1 {
-    font-weight: bold;
-  }
-  
-  .toc-h2 {
-    padding-left: 1.5rem;
-  }
-  
-  .toc-h3 {
-    padding-left: 3rem;
-    font-size: 0.9rem;
-  }
-  
-  /* Markdown Styling */
-  .itinerary-content h1, 
-  .itinerary-content h2, 
-  .itinerary-content h3 {
-    color: var(--primary);
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-  }
-  
-  .itinerary-content h1 {
-    font-size: 1.8rem;
-    border-bottom: 2px solid var(--primary-light);
-    padding-bottom: 0.5rem;
-  }
-  
-  .itinerary-content h2 {
-    font-size: 1.5rem;
-  }
-  
-  .itinerary-content h3 {
-    font-size: 1.2rem;
-  }
-  
-  .itinerary-content p {
-    margin-bottom: 1rem;
-  }
-  
-  .itinerary-content ul, 
-  .itinerary-content ol {
-    padding-left: 2rem;
-    margin-bottom: 1.5rem;
-  }
-  
-  .itinerary-content li {
-    margin-bottom: 0.5rem;
-  }
-  
-  .itinerary-content strong {
-    color: var(--text-dark);
-    font-weight: 600;
-  }
-  
-  .itinerary-content em {
-    font-style: italic;
-  }
-  
-  .itinerary-content blockquote {
-    border-left: 4px solid var(--primary-light);
-    padding-left: 1rem;
-    margin-left: 0;
-    margin-right: 0;
-    font-style: italic;
-    color: var(--text-light);
-  }
-  
-  .itinerary-content hr {
-    border: 0;
-    height: 1px;
-    background-color: #eee;
-    margin: 2rem 0;
-  }
-  
-  .itinerary-content img {
-    max-width: 100%;
-    border-radius: var(--radius);
-    margin: 1.5rem 0;
-  }
-  
-  .itinerary-content table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 1.5rem 0;
-  }
-  
-  .itinerary-content th, 
-  .itinerary-content td {
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-  }
-  
-  .itinerary-content th {
-    background-color: var(--primary-light);
-    color: var(--primary-dark);
-    font-weight: 600;
-  }
-  
-  .itinerary-content tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
-  
-  /* Share Section */
-  .share-section {
-    background-color: white;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 1.5rem;
-    text-align: center;
-    margin-bottom: 2rem;
-  }
-  
-  .share-section h3 {
-    color: var(--primary);
-    margin-bottom: 1rem;
-  }
-  
+}
+
+@media (max-width: 768px) {
   .share-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    flex-wrap: wrap;
+    flex-direction: column;
   }
   
   .share-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.6rem 1.2rem;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .itinerary-header, 
+  .share-section, 
+  header, 
+  footer, 
+  .btn {
+    display: none !important;
   }
   
-  /* Print Styles */
-  @media print {
-    .itinerary-header, 
-    .share-section, 
-    header, 
-    footer, 
-    .btn {
-      display: none !important;
-    }
-    
-    .itinerary-paper {
-      box-shadow: none;
-      padding: 0;
-      margin: 0;
-    }
-    
-    .itinerary-paper::before {
-      display: none;
-    }
-    
-    .itinerary-content {
-      font-size: 12pt;
-    }
-    
-    .toc {
-      background: none;
-      border: 1px solid #ddd;
-      padding: 1rem;
-    }
-    
-    body, .content {
-      background: white !important;
-      padding: 0 !important;
-      margin: 0 !important;
-    }
-    
-    @page {
-      margin: 1.5cm;
-    }
+  .itinerary-paper {
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
   }
   
-  /* Responsive Design */
-  @media (max-width: 768px) {
-    .itinerary-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    
-    .itinerary-paper {
-      padding: 1.5rem;
-    }
-    
-    .itinerary-actions {
-      width: 100%;
-    }
-    
-    .itinerary-actions .btn {
-      flex: 1;
-      text-align: center;
-    }
+  .itinerary-paper::before {
+    display: none;
   }
   
-  /* Animations */
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  .itinerary-content {
+    font-size: 12pt;
   }
+  
+  .toc {
+    background: none;
+    border: 1px solid #ddd;
+    padding: 1rem;
+  }
+  
+  body, .content {
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  @page {
+    margin: 1.5cm;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .itinerary-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .itinerary-paper {
+    padding: 1.5rem;
+  }
+  
+  .itinerary-actions {
+    width: 100%;
+  }
+  
+  .itinerary-actions .btn {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 </style>
 {% endblock %}
 
