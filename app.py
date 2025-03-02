@@ -270,7 +270,7 @@ def upload_pdf():
         messages = [
             {"role": "system", "content": """You are a travel assistant that processes uploaded PDF itineraries.
             Extract the key information and format it as a clear, structured itinerary.
-            Use Markdown formatting for better readability. But one very important thing to follow is that you will only suggest places which have specific addreses whcih are accessible in your knowledge and only sureshort addresses which would actually give lat-long when the system runs the geocoding api on the provided addresses"""},
+            Use Markdown formatting for better readability. But one very important thing to follow is that you will only suggest places which have specific addreses whcih are accessible in your knowledge and only sureshort addresses which would actually give lat-long when the system runs the geocoding api on the provided addresses. SKIP PLACES LIKE LIBERY ISLAND AND STATURE OF LIBERY, PARKS, WEIRD OPEN PALCES WHICH DONT HAVE A SPECIFIC ADDRESS. Very important thing to follow is that you will only suggest places which have specific addreses whcih are accessible in your knowledge and only sureshort addresses which would actually give lat-long when the system runs the geocoding api on the provided addresses. But one very important thing to follow is that you will only suggest places which have specific addreses whcih are accessible in your knowledge and only sureshort addresses which would actually give lat-long when the system runs the geocoding api on the provided addresses"""},
             {"role": "user", "content": f"Extract and structure the travel itinerary from this PDF: {filename}"}
         ]
 
@@ -310,7 +310,7 @@ def finalize_trip():
         messages_markdown = [
             {"role": "system", "content": (
                 "You are an expert travel planner. Generate a structured markdown itinerary. "
-                "For each place, include its full address in parentheses after the place name.  Also in the itinerary only include the palce which have an actual address otherwise skip the places which have generic named addresses which wouldnt work for geocoding"
+                "For each place, include its full address in parentheses after the place name.  Also in the itinerary only include the place which has an actual address otherwise skip the places which have generic named addresses. SO FOR THE ADDRESS ATTRIBUTE IN THE JSON FOR EACH OF THE LOCATION IF THE LOCATION THAT YOU HAVE THOUGHT OF DOESNT HAVE AN ADDRESS THAT WOULD BE VIABLE TO DETECT THEN JUST SKIP THAT AND USE SOME OTHER PLACE THAT WOUDL AHVE A PERFECT. THESE PLACES wouldnt work for geocoding because we also need to extract the lat long ahead so places like statue of liberty would be difficult because theres no official address of the liberty island. "
                 "Example: '## Central Park (Central Park, New York, NY 10022, USA)'"
             )},
             {"role": "user", "content": f"Create a detailed itinerary with addresses for:\n\n{combined_itinerary}"}
