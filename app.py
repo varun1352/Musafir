@@ -180,21 +180,21 @@ def index():
         {
             'name': 'Tokyo, Japan',
             'description': 'Experience the perfect blend of tradition and modernity',
-            'image': '/placeholder.svg?height=200&width=300',
+            'image': 'images/cultural1.jpg',
             'travelers': 1200,
             'trips': 450
         },
         {
             'name': 'Paris, France',
             'description': 'Discover the city of lights and romance',
-            'image': '/placeholder.svg?height=200&width=300',
+            'image': 'images/paris1.jpg',
             'travelers': 980,
             'trips': 380
         },
         {
             'name': 'New York, USA',
             'description': 'The city that never sleeps awaits your adventure',
-            'image': '/placeholder.svg?height=200&width=300',
+            'image': 'images/nyc.jpg',
             'travelers': 850,
             'trips': 320
         }
@@ -447,7 +447,7 @@ def explore():
     featured = [
         {
             'title': 'Tokyo Adventure',
-            'image': '/placeholder.svg?height=200&width=300',
+            'image': 'images/cultural2.jpg',
             'duration': '7 days',
             'rating': 4.8,
             'reviews': 124,
@@ -455,7 +455,7 @@ def explore():
         },
         {
             'title': 'Paris Romance',
-            'image': '/placeholder.svg?height=200&width=300',
+            'image': 'images/paris1.jpg',
             'duration': '5 days',
             'rating': 4.7,
             'reviews': 98,

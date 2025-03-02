@@ -18,7 +18,7 @@
       </div>
     </div>
     <div class="hero-image">
-      <img src="/placeholder.svg?height=400&width=600" alt="Travel destinations collage">
+      <img src="{{ url_for('static', filename ='images/1b62c85a-e1ec-4f8c-a435-01b50bddb163.jpg')}}" alt="Travel destinations collage">
     </div>
   </section>
 
@@ -66,7 +66,7 @@
         {% for destination in popular_destinations %}
         <div class="destination-card">
           <div class="destination-image">
-            <img src="{{ destination.image }}" alt="{{ destination.name }}">
+            <img src="{{ url_for('static', filename=destination.image) }}" alt="{{ destination.name }}">
           </div>
           <div class="destination-content">
             <h3>{{ destination.name }}</h3>

@@ -30,7 +30,7 @@
       {% for trip in featured %}
       <div class="featured-card">
         <div class="featured-image">
-          <img src="{{ trip.image }}" alt="{{ trip.title }}">
+          <img src="{{ url_for('static', filename=trip.image) }}" alt="{{ trip.name }}">
           <div class="featured-badges">
             <span class="badge-duration">
               <i class="fas fa-clock"></i>
@@ -75,7 +75,7 @@
         {% for trip in category.trips %}
         <div class="trip-card">
           <div class="trip-image">
-            <img src="{{ trip.image }}" alt="{{ trip.title }}">
+            <img src="{{ url_for('static', filename=trip.image) }}" alt="{{ trip.name }}">
             <div class="trip-overlay">
               <span class="trip-duration">{{ trip.duration }}</span>
               <span class="trip-rating">
