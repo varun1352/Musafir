@@ -1,63 +1,275 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container">
-  <h2 class="itinerary-title">Finalized Travel Itinerary</h2>
+<div class="itinerary-container">
+  <div class="itinerary-header">
+    <h1 class="itinerary-title">Your Travel Itinerary</h1>
+    <div class="itinerary-actions">
+      <button onclick="window.print()" class="btn btn-success">
+        <i class="fas fa-print"></i> Print Itinerary
+      </button>
+      <a href="/" class="btn btn-primary">
+        <i class="fas fa-arrow-left"></i> Back to Planner
+      </a>
+    </div>
+  </div>
   
-  <div id="itineraryContent" class="itinerary-content"></div>
+  <div class="itinerary-paper">
+    <div id="itineraryContent" class="itinerary-content"></div>
+  </div>
   
-  <div class="action-buttons">
-    <a href="/" class="btn btn-primary">Back to Planner</a>
-    <button onclick="window.print()" class="btn btn-success">Print Itinerary</button>
+  <div class="share-section">
+    <h3>Share Your Itinerary</h3>
+    <div class="share-buttons">
+      <button class="btn btn-outline share-btn">
+        <i class="fas fa-envelope"></i> Email
+      </button>
+      <button class="btn btn-outline share-btn">
+        <i class="fab fa-whatsapp"></i> WhatsApp
+      </button>
+      <button class="btn btn-outline share-btn">
+        <i class="fas fa-download"></i> Download PDF
+      </button>
+    </div>
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.12/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
 <script>
-  // Get the markdown text from the template
-  const markdownText = `{{itinerary | safe}}`;
-  
-  // Configure marked with options if needed
+  // Check if marked is loaded, if not, load it again
+  if (typeof marked === 'undefined') {
+    console.log("Marked not loaded, loading fallback...");
+    document.write('<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"><\/script>');
+  }
+</script>
+<script>
+  // Configure marked with options
   marked.setOptions({
-    breaks: true,  // Convert \n to <br>
-    gfm: true      // Enable GitHub Flavored Markdown
+    breaks: true,      // Convert \n to <br>
+    gfm: true,         // Enable GitHub Flavored Markdown
+    headerIds: true,   // Enable header IDs for linking
+    mangle: false      // Don't mangle header IDs
   });
   
-  // Convert markdown to HTML
-  document.getElementById("itineraryContent").innerHTML = marked.parse(markdownText);
+  // Get the markdown text from the template and parse it
+  document.addEventListener('DOMContentLoaded', function() {
+    const markdownText = `{{itinerary | safe}}`;
+    
+    // Configure marked with options if it's defined
+    if (typeof marked !== 'undefined') {
+      marked.setOptions({
+        breaks: true,      // Convert \n to <br>
+        gfm: true,         // Enable GitHub Flavored Markdown
+        headerIds: true,   // Enable header IDs for linking
+        mangle: false      // Don't mangle header IDs
+      });
+      
+      // Parse markdown to HTML
+      const htmlContent = marked.parse(markdownText);
+      
+      // Insert the HTML content
+      document.getElementById("itineraryContent").innerHTML = htmlContent;
+      
+      // Add table of contents if there are headers
+      addTableOfContents();
+    } else {
+      // Fallback: just display the text with basic formatting
+      console.error("Marked library not loaded, displaying plain text");
+      const contentDiv = document.getElementById("itineraryContent");
+      
+      // Basic formatting for plain text
+      const formattedText = markdownText
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/\n/g, '<br>');
+      
+      contentDiv.innerHTML = '<p>' + formattedText + '</p>';
+    }
+  });
+  
+  // Function to generate table of contents
+  function addTableOfContents() {
+    const content = document.getElementById("itineraryContent");
+    const headers = content.querySelectorAll('h1, h2, h3');
+    
+    if (headers.length > 3) {  // Only add TOC if there are enough headers
+      const toc = document.createElement('div');
+      toc.className = 'toc';
+      toc.innerHTML = '<h3>Table of Contents</h3><ul></ul>';
+      const tocList = toc.querySelector('ul');
+      
+      headers.forEach((header, index) => {
+        // Add ID to header if it doesn't have one
+        if (!header.id) {
+          header.id = 'toc-header-' + index;
+        }
+        
+        const listItem = document.createElement('li');
+        listItem.className = `toc-${header.tagName.toLowerCase()}`;
+        
+        const link = document.createElement('a');
+        link.href = `#${header.id}`;
+        link.textContent = header.textContent;
+        
+        listItem.appendChild(link);
+        tocList.appendChild(listItem);
+      });
+      
+      // Insert TOC at the beginning of the content
+      content.insertBefore(toc, content.firstChild);
+    }
+  }
+  
+  // Share buttons functionality (placeholder)
+  document.addEventListener('DOMContentLoaded', function() {
+    const shareButtons = document.querySelectorAll('.share-btn');
+    
+    shareButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        alert('Sharing functionality will be implemented in the next version!');
+      });
+    });
+  });
 </script>
 
 <style>
-  .container {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  /* Itinerary Container */
+  .itinerary-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    animation: fadeIn 0.8s ease-out;
+  }
+  
+  /* Itinerary Header */
+  .itinerary-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
   }
   
   .itinerary-title {
-    color: #ff6b6b;
-    text-align: center;
-    margin-bottom: 1.5rem;
-    font-size: 1.8rem;
+    color: var(--primary);
+    font-size: 2.2rem;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 700;
+    margin: 0;
   }
   
+  .itinerary-actions {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  /* Paper Effect */
+  .itinerary-paper {
+    background-color: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 3rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .itinerary-paper::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--primary);
+  }
+  
+  /* Itinerary Content Styling */
   .itinerary-content {
     line-height: 1.6;
-    color: #333;
+    color: var(--text-dark);
   }
   
-  /* Style markdown elements */
+  /* Table of Contents */
+  .toc {
+    background-color: var(--bg-light);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    margin-bottom: 2rem;
+    border-left: 3px solid var(--primary);
+  }
+  
+  .toc h3 {
+    margin-top: 0;
+    color: var(--primary);
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .toc ul {
+    list-style-type: none;
+    padding-left: 0;
+  }
+  
+  .toc li {
+    margin-bottom: 0.5rem;
+  }
+  
+  .toc a {
+    color: var(--text-dark);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  
+  .toc a:hover {
+    color: var(--primary);
+    text-decoration: underline;
+  }
+  
+  .toc-h1 {
+    font-weight: bold;
+  }
+  
+  .toc-h2 {
+    padding-left: 1.5rem;
+  }
+  
+  .toc-h3 {
+    padding-left: 3rem;
+    font-size: 0.9rem;
+  }
+  
+  /* Markdown Styling */
   .itinerary-content h1, 
   .itinerary-content h2, 
   .itinerary-content h3 {
-    color: #ff6b6b;
-    margin-top: 1.5rem;
+    color: var(--primary);
+    margin-top: 2rem;
+    margin-bottom: 1rem;
   }
   
-  .itinerary-content ul {
-    padding-left: 1.5rem;
+  .itinerary-content h1 {
+    font-size: 1.8rem;
+    border-bottom: 2px solid var(--primary-light);
+    padding-bottom: 0.5rem;
+  }
+  
+  .itinerary-content h2 {
+    font-size: 1.5rem;
+  }
+  
+  .itinerary-content h3 {
+    font-size: 1.2rem;
+  }
+  
+  .itinerary-content p {
+    margin-bottom: 1rem;
+  }
+  
+  .itinerary-content ul, 
+  .itinerary-content ol {
+    padding-left: 2rem;
+    margin-bottom: 1.5rem;
   }
   
   .itinerary-content li {
@@ -65,59 +277,154 @@
   }
   
   .itinerary-content strong {
-    color: #333;
+    color: var(--text-dark);
+    font-weight: 600;
+  }
+  
+  .itinerary-content em {
+    font-style: italic;
+  }
+  
+  .itinerary-content blockquote {
+    border-left: 4px solid var(--primary-light);
+    padding-left: 1rem;
+    margin-left: 0;
+    margin-right: 0;
+    font-style: italic;
+    color: var(--text-light);
   }
   
   .itinerary-content hr {
     border: 0;
-    border-top: 1px solid #eee;
+    height: 1px;
+    background-color: #eee;
+    margin: 2rem 0;
+  }
+  
+  .itinerary-content img {
+    max-width: 100%;
+    border-radius: var(--radius);
     margin: 1.5rem 0;
   }
   
-  .action-buttons {
+  .itinerary-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+  }
+  
+  .itinerary-content th, 
+  .itinerary-content td {
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+  }
+  
+  .itinerary-content th {
+    background-color: var(--primary-light);
+    color: var(--primary-dark);
+    font-weight: 600;
+  }
+  
+  .itinerary-content tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  /* Share Section */
+  .share-section {
+    background-color: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  
+  .share-section h3 {
+    color: var(--primary);
+    margin-bottom: 1rem;
+  }
+  
+  .share-buttons {
     display: flex;
     justify-content: center;
     gap: 1rem;
-    margin-top: 2rem;
+    flex-wrap: wrap;
   }
   
-  .btn {
-    padding: 0.5rem 1.5rem;
-    border-radius: 6px;
-    font-weight: 600;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s;
+  .share-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
   }
   
-  .btn-primary {
-    background-color: #ff6b6b;
-    color: white;
-  }
-  
-  .btn-success {
-    background-color: #28a745;
-    color: white;
-  }
-  
-  .btn:hover {
-    opacity: 0.9;
-  }
-  
+  /* Print Styles */
   @media print {
-    .action-buttons {
+    .itinerary-header, 
+    .share-section, 
+    header, 
+    footer, 
+    .btn {
+      display: none !important;
+    }
+    
+    .itinerary-paper {
+      box-shadow: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .itinerary-paper::before {
       display: none;
     }
     
-    body {
+    .itinerary-content {
       font-size: 12pt;
     }
     
-    .container {
-      box-shadow: none;
-      max-width: 100%;
+    .toc {
+      background: none;
+      border: 1px solid #ddd;
+      padding: 1rem;
     }
+    
+    body, .content {
+      background: white !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    
+    @page {
+      margin: 1.5cm;
+    }
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .itinerary-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .itinerary-paper {
+      padding: 1.5rem;
+    }
+    
+    .itinerary-actions {
+      width: 100%;
+    }
+    
+    .itinerary-actions .btn {
+      flex: 1;
+      text-align: center;
+    }
+  }
+  
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 </style>
 {% endblock %}
+

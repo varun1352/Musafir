@@ -1,45 +1,207 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="chat-container">
-  <h2 class="chat-title">Travel Itinerary Chat</h2>
-
-  <!-- Chat box with scrollable content -->
-  <div class="chat-box" id="chatBox">
-    <!-- Messages will be appended here dynamically -->
+<div id="mainContent">
+  <!-- Welcome Section -->
+  <div class="welcome-section">
+    <h1 class="welcome-title">Plan Your Perfect Journey</h1>
+    <p class="welcome-subtitle">Chat with our AI travel assistant to create a personalized itinerary</p>
   </div>
 
-  <!-- Input container pinned at the bottom of the .chat-container -->
-  <div class="input-container">
-    <label for="pdfFile" class="btn file-label">📎 Upload PDF</label>
-    <input type="file" id="pdfFile" hidden>
-
-    <input type="text" id="chatInput" class="chat-input" placeholder="Type a message...">
+  <!-- Chat Interface -->
+  <div id="chatInterface" class="chat-container">
+    <div class="chat-header">
+      <h2 class="chat-title"><i class="fas fa-comments"></i> Travel Itinerary Chat</h2>
+      <div class="chat-actions">
+        <button type="button" class="btn-icon" id="clearChat" title="Clear chat">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      </div>
+    </div>
     
-    <button class="send-btn" onclick="sendMessage()">Send</button>
-    <button class="finalize-btn" onclick="finalizeTrip()">Finalize Trip</button>
+    <div class="chat-box" id="chatBox">
+      <!-- Initial welcome message -->
+      <div class="message bot-message">
+        <div class="message-content">
+          <p>👋 Hello! I'm your travel assistant. Tell me about your dream destination, travel dates, and preferences, and I'll help you create the perfect itinerary.</p>
+          <p>You can also upload an existing itinerary PDF to refine it.</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="input-container">
+      <div class="upload-btn-wrapper">
+        <button class="btn-icon" title="Upload PDF">
+          <i class="fas fa-paperclip"></i>
+        </button>
+        <input type="file" id="pdfFile" accept=".pdf">
+      </div>
+      
+      <div class="input-wrapper">
+        <input type="text" id="chatInput" class="chat-input" placeholder="Type your travel plans...">
+        <button type="button" class="btn-icon send-btn" onclick="sendMessage()">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+      
+      <button type="button" class="finalize-btn" onclick="finalizeTrip()">
+        <i class="fas fa-check-circle"></i> Finalize Trip
+      </button>
+    </div>
+  </div>
+
+  <!-- Travel Tips Section -->
+  <div class="tips-section">
+    <h3>Travel Planning Tips</h3>
+    <div class="tips-grid">
+      <div class="tip-card">
+        <i class="fas fa-calendar-alt"></i>
+        <h4>Be Specific</h4>
+        <p>Include your travel dates, duration, and any must-see attractions</p>
+      </div>
+      <div class="tip-card">
+        <i class="fas fa-heart"></i>
+        <p>Mention your preferences (adventure, relaxation, culture, food)</p>
+      </div>
+      <div class="tip-card">
+        <i class="fas fa-dollar-sign"></i>
+        <p>Specify your budget range for better recommendations</p>
+      </div>
+      <div class="tip-card">
+        <i class="fas fa-users"></i>
+        <p>Tell us who you're traveling with (solo, couple, family, friends)</p>
+      </div>
+    </div>
   </div>
 </div>
 
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
 <script>
+  // Check if marked is loaded, if not, load it again
+  if (typeof marked === 'undefined') {
+    console.log("Marked not loaded, loading fallback...");
+    document.write('<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"><\/script>');
+  }
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Ensure marked is defined before configuring
+    if (typeof marked !== 'undefined') {
+      // Configure marked with options
+      marked.setOptions({
+        breaks: true,      // Convert \n to <br>
+        gfm: true,         // Enable GitHub Flavored Markdown
+        headerIds: true,   // Enable header IDs for linking
+        mangle: false      // Don't mangle header IDs
+      });
+    } else {
+      console.error("Marked library not loaded!");
+    }
+  });
+</script>
+<script>
+  // Ensure the file upload works
   document.getElementById("pdfFile").addEventListener("change", uploadPDF);
+  
+  // Clear chat button
+  document.getElementById("clearChat").addEventListener("click", function() {
+    if (confirm("Are you sure you want to clear the chat history?")) {
+      document.getElementById("chatBox").innerHTML = `
+        <div class="message bot-message">
+          <div class="message-content">
+            <p>👋 Hello! I'm your travel assistant. Tell me about your dream destination, travel dates, and preferences, and I'll help you create the perfect itinerary.</p>
+            <p>You can also upload an existing itinerary PDF to refine it.</p>
+          </div>
+        </div>
+      `;
+    }
+  });
 
-  function addMessage(text, sender) {
+  // Append a new message to the chatBox, parsing Markdown into HTML
+  function addMessage(markdownText, sender) {
     let chatBox = document.getElementById("chatBox");
     let messageDiv = document.createElement("div");
     messageDiv.classList.add("message", sender === "user" ? "user-message" : "bot-message");
-    messageDiv.innerHTML = text;
+    
+    // Create message content container
+    let contentDiv = document.createElement("div");
+    contentDiv.classList.add("message-content");
+    
+    // Parse markdown and set as innerHTML, with fallback if marked is not defined
+    try {
+      if (typeof marked !== 'undefined') {
+        contentDiv.innerHTML = marked.parse(markdownText);
+      } else {
+        // Use simple fallback parser
+        contentDiv.innerHTML = simpleMarkdownParser(markdownText);
+        console.warn("Using fallback markdown parser");
+      }
+    } catch (e) {
+      console.error("Error parsing markdown:", e);
+      contentDiv.textContent = markdownText;
+    }
+    
+    // Add timestamp
+    let timestamp = document.createElement("div");
+    timestamp.classList.add("message-time");
+    let now = new Date();
+    timestamp.textContent = now.getHours().toString().padStart(2, '0') + ":" + 
+                           now.getMinutes().toString().padStart(2, '0');
+    
+    // Append content and timestamp to message
+    messageDiv.appendChild(contentDiv);
+    messageDiv.appendChild(timestamp);
+    
+    // Append message to chat box
     chatBox.appendChild(messageDiv);
-    // Auto-scroll to bottom of chat
+    
+    // Auto-scroll to the bottom
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
+  // Simple markdown parser fallback in case marked.js fails to load
+  function simpleMarkdownParser(text) {
+    if (!text) return '';
+    
+    // Basic markdown parsing
+    return text
+      // Headers
+      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+      // Bold
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      // Italic
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      // Lists
+      .replace(/^\- (.*$)/gim, '<ul><li>$1</li></ul>')
+      // Line breaks
+      .replace(/\n/g, '<br>');
+  }
+
+  // Send message when Enter key is pressed
+  document.getElementById("chatInput").addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+      sendMessage();
+    }
+  });
+
   function sendMessage() {
-    let userInput = document.getElementById("chatInput").value;
+    let chatInput = document.getElementById("chatInput");
+    let userInput = chatInput.value;
     if (!userInput.trim()) return;
 
+    // Add user message
     addMessage(userInput, "user");
+    
+    // Show typing indicator
+    let chatBox = document.getElementById("chatBox");
+    let typingIndicator = document.createElement("div");
+    typingIndicator.classList.add("message", "bot-message", "typing-indicator");
+    typingIndicator.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+    chatBox.appendChild(typingIndicator);
+    chatBox.scrollTop = chatBox.scrollHeight;
 
     fetch("/process_text", {
       method: "POST",
@@ -48,11 +210,21 @@
     })
     .then(response => response.json())
     .then(data => {
+      // Remove typing indicator
+      chatBox.removeChild(typingIndicator);
+      
+      // Add bot response with markdown parsing
       addMessage(data.response, "bot");
     })
-    .catch(error => console.error("Error:", error));
+    .catch(error => {
+      console.error("Error:", error);
+      // Remove typing indicator
+      chatBox.removeChild(typingIndicator);
+      // Show error message
+      addMessage("Sorry, there was an error processing your request. Please try again.", "bot");
+    });
 
-    document.getElementById("chatInput").value = "";
+    chatInput.value = "";
   }
 
   function uploadPDF() {
@@ -60,7 +232,21 @@
     let file = fileInput.files[0];
     if (!file) return;
 
-    addMessage("📎 Uploaded: " + file.name, "user");
+    // Check if it's a PDF
+    if (file.type !== "application/pdf") {
+      alert("Please upload a PDF file.");
+      fileInput.value = "";
+      return;
+    }
+
+    addMessage(`📎 Uploading: **${file.name}**`, "user");
+    
+    // Show typing indicator
+    let chatBox = document.getElementById("chatBox");
+    let typingIndicator = document.createElement("div");
+    typingIndicator.classList.add("message", "bot-message", "typing-indicator");
+    typingIndicator.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+    chatBox.appendChild(typingIndicator);
 
     let formData = new FormData();
     formData.append("file", file);
@@ -71,122 +257,500 @@
     })
     .then(response => response.json())
     .then(data => {
+      // Remove typing indicator
+      chatBox.removeChild(typingIndicator);
+      
+      // Add bot response with markdown parsing
       addMessage(data.response, "bot");
     })
-    .catch(error => console.error("Error:", error));
+    .catch(error => {
+      console.error("Error:", error);
+      // Remove typing indicator
+      chatBox.removeChild(typingIndicator);
+      // Show error message
+      addMessage("Sorry, there was an error processing your PDF. Please try again.", "bot");
+    });
+    
+    // Reset file input
+    fileInput.value = "";
   }
 
+  // On Finalize, fetch the final itinerary from the backend and redirect to itinerary page
   function finalizeTrip() {
-    fetch("/finalize_trip", {
-        method: "POST"
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Redirect in the same window to the itinerary view.
-        window.location.href = "/view_itinerary";
-    })
-    .catch(error => console.error("Error:", error));
+    // Show loading overlay
+    const loadingOverlay = document.createElement("div");
+    loadingOverlay.className = "loading-overlay";
+    loadingOverlay.innerHTML = `
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p>Finalizing your perfect itinerary...</p>
+      </div>
+    `;
+    document.body.appendChild(loadingOverlay);
+    
+    fetch("/finalize_trip", { method: "POST" })
+      .then(response => response.json())
+      .then(data => {
+        // Remove loading overlay
+        document.body.removeChild(loadingOverlay);
+        
+        if (data.finalized) {
+          // Redirect to the itinerary view page
+          window.location.href = "/view_itinerary";
+        } else {
+          alert("No final itinerary was generated. Please try again.");
+        }
+      })
+      .catch(error => {
+        console.error("Error during finalizeTrip:", error);
+        // Remove loading overlay
+        document.body.removeChild(loadingOverlay);
+        alert("There was an error finalizing your trip. Please try again.");
+      });
   }
-
 </script>
 
 <style>
+  /* Welcome Section */
+  .welcome-section {
+    text-align: center;
+    margin-bottom: 2rem;
+    animation: fadeIn 0.8s ease-out;
+  }
+  
+  .welcome-title {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 700;
+  }
+  
+  .welcome-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-light);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
   /* Chat Container */
   .chat-container {
     width: 100%;
     max-width: 800px;
     background-color: #fff;
-    border-radius: 10px;
-    margin: 2rem auto;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-radius: var(--radius);
+    margin: 0 auto 2rem;
+    box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    height: 70vh;
+    min-height: 500px;
+    animation: slideUp 0.5s ease-out;
+  }
+  
+  .chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 1rem 1.5rem;
-    /* Make the container taller so there's space for a pinned input */
-    height: 80vh;
-    max-height: 80vh;
+    background-color: var(--primary-light);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
   }
-
+  
   .chat-title {
-    text-align: center;
-    margin-bottom: 1rem;
-    color: #ff6b6b;
-    font-size: 1.5rem;
+    color: var(--primary-dark);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
   }
-
-  /* Chat Box */
+  
+  .chat-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
   .chat-box {
-    flex: 1; /* Let the chat box grow to fill space above the input */
+    flex: 1;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     padding: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    background: #fafafa;
-    margin-bottom: 1rem; /* Spacing above input container */
+    background: var(--bg-light);
+    gap: 1rem;
   }
-
+  
   .message {
-    padding: 10px 15px;
-    border-radius: 8px;
-    margin: 5px 0;
+    display: flex;
+    flex-direction: column;
     max-width: 80%;
     word-wrap: break-word;
-    line-height: 1.4;
+    position: relative;
+    animation: messageIn 0.3s ease-out;
   }
-
+  
+  .message-content {
+    padding: 0.8rem 1rem;
+    border-radius: 1rem;
+    line-height: 1.5;
+  }
+  
+  .message-content p {
+    margin: 0.5rem 0;
+  }
+  
+  .message-content p:first-child {
+    margin-top: 0;
+  }
+  
+  .message-content p:last-child {
+    margin-bottom: 0;
+  }
+  
+  .message-time {
+    font-size: 0.7rem;
+    color: var(--text-light);
+    margin-top: 0.3rem;
+    opacity: 0.8;
+  }
+  
   .user-message {
     align-self: flex-end;
-    background: #ff6b6b;
-    color: #fff;
   }
-
+  
+  .user-message .message-content {
+    background: var(--primary);
+    color: #fff;
+    border-bottom-right-radius: 0.3rem;
+  }
+  
+  .user-message .message-time {
+    align-self: flex-end;
+  }
+  
   .bot-message {
     align-self: flex-start;
-    background: #e9ecef;
-    color: #333;
   }
-
-  /* Input Container pinned at bottom */
+  
+  .bot-message .message-content {
+    background: white;
+    color: var(--text-dark);
+    border: 1px solid #e0e0e0;
+    border-bottom-left-radius: 0.3rem;
+  }
+  
+  /* Typing indicator */
+  .typing-indicator {
+    padding: 0.8rem 1rem;
+    max-width: 100px;
+  }
+  
+  .typing-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.3rem;
+  }
+  
+  .typing-dots span {
+    width: 8px;
+    height: 8px;
+    background: var(--text-light);
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: typingAnimation 1.4s infinite ease-in-out;
+  }
+  
+  .typing-dots span:nth-child(1) {
+    animation-delay: 0s;
+  }
+  
+  .typing-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  
+  .typing-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+  
+  @keyframes typingAnimation {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-5px); }
+  }
+  
+  /* Input area */
   .input-container {
     display: flex;
+    padding: 1rem;
+    background: white;
+    border-top: 1px solid rgba(0,0,0,0.05);
     gap: 0.5rem;
     align-items: center;
   }
-
-  .file-label {
-    background-color: #ffd5d5;
-    color: #333;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    border: 1px solid #ffb3b3;
-    transition: background-color 0.2s;
+  
+  .input-wrapper {
+    flex: 1;
+    display: flex;
+    background: var(--bg-light);
+    border-radius: 2rem;
+    overflow: hidden;
+    border: 1px solid #e0e0e0;
   }
-  .file-label:hover {
-    background-color: #ffc0c0;
-  }
-
+  
   .chat-input {
     flex: 1;
-    padding: 0.5rem;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-  }
-
-  .send-btn, .finalize-btn {
-    background-color: #ff6b6b;
-    color: #fff;
+    padding: 0.8rem 1.2rem;
     border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.2s;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.95rem;
   }
-  .send-btn:hover, .finalize-btn:hover {
-    background-color: #ff8080;
+  
+  .chat-input:focus {
+    outline: none;
+  }
+  
+  .btn-icon {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+  }
+  
+  .btn-icon:hover {
+    color: var(--primary);
+  }
+  
+  .send-btn {
+    color: var(--primary);
+    padding-right: 1rem;
+  }
+  
+  .upload-btn-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+  }
+  
+  .upload-btn-wrapper input[type=file] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+  }
+  
+  .finalize-btn {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.2rem;
+    border-radius: 2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+  }
+  
+  .finalize-btn:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+  }
+  
+  /* Tips Section */
+  .tips-section {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    animation: fadeIn 1s ease-out;
+  }
+  
+  .tips-section h3 {
+    color: var(--primary);
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+  }
+  
+  .tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .tip-card {
+    background: var(--bg-light);
+    padding: 1.2rem;
+    border-radius: var(--radius);
+    text-align: center;
+    transition: transform 0.3s ease;
+    border-left: 3px solid var(--primary);
+  }
+  
+  .tip-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .tip-card i {
+    color: var(--primary);
+    font-size: 1.5rem;
+    margin-bottom: 0.8rem;
+  }
+  
+  .tip-card h4 {
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+  }
+  
+  .tip-card p {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+  
+  /* Loading overlay */
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .loading-content {
+    text-align: center;
+  }
+  
+  .loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid var(--primary-light);
+    border-top: 5px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  @keyframes messageIn {
+    from { transform: translateY(10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  /* Markdown Styling */
+  .message-content h1, 
+  .message-content h2, 
+  .message-content h3 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    color: inherit;
+  }
+  
+  .message-content ul, 
+  .message-content ol {
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+  }
+  
+  .message-content li {
+    margin-bottom: 0.3rem;
+  }
+  
+  .message-content a {
+    color: #0066cc;
+    text-decoration: underline;
+  }
+  
+  .message-content code {
+    background: rgba(0, 0, 0, 0.05);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: monospace;
+  }
+  
+  .message-content blockquote {
+    border-left: 3px solid #ddd;
+    padding-left: 1rem;
+    margin-left: 0;
+    color: #666;
+  }
+  
+  .message-content img {
+    max-width: 100%;
+    border-radius: 4px;
+    margin: 0.5rem 0;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .chat-container {
+      height: 60vh;
+    }
+    
+    .message {
+      max-width: 90%;
+    }
+    
+    .input-container {
+      flex-wrap: wrap;
+    }
+    
+    .input-wrapper {
+      order: 1;
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+    
+    .upload-btn-wrapper {
+      order: 2;
+    }
+    
+    .finalize-btn {
+      order: 3;
+      width: 100%;
+      justify-content: center;
+      margin-top: 0.5rem;
+    }
+    
+    .tips-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
 {% endblock %}
+

@@ -5,8 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Musafir - Travel App</title>
 
-  <!-- Google Fonts: example for a softer, more homely feel -->
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
     /* Global Reset & Body */
@@ -15,13 +19,27 @@
       padding: 0;
       box-sizing: border-box;
     }
+    
+    :root {
+      --primary: #ff6b6b;
+      --primary-light: #ffd5d5;
+      --primary-dark: #e05555;
+      --secondary: #4ecdc4;
+      --text-dark: #2d3436;
+      --text-light: #636e72;
+      --bg-light: #f9f9f9;
+      --bg-gradient: linear-gradient(160deg, #fce3dc, #fdeee7);
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --radius: 12px;
+    }
+    
     body {
-      font-family: 'Quicksand', sans-serif;
-      background: linear-gradient(160deg, #fce3dc, #fdeee7);
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg-gradient);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      color: #333;
+      color: var(--text-dark);
     }
 
     /* Header Styles */
@@ -31,21 +49,61 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .logo i {
+      color: var(--primary);
+      font-size: 1.5rem;
+    }
+    
     header h1 {
       font-size: 1.8rem;
-      color: #ff6b6b;
+      color: var(--primary);
+      font-family: 'Quicksand', sans-serif;
+      font-weight: 700;
     }
+    
+    nav {
+      display: flex;
+      gap: 1.5rem;
+    }
+    
     nav a {
-      margin-left: 1rem;
       text-decoration: none;
-      color: #ff6b6b;
-      font-weight: 600;
-      transition: color 0.3s ease;
+      color: var(--text-dark);
+      font-weight: 500;
+      transition: all 0.3s ease;
+      position: relative;
+      padding: 0.5rem 0;
     }
+    
     nav a:hover {
-      color: #ff9a9a;
+      color: var(--primary);
+    }
+    
+    nav a::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: 0;
+      left: 0;
+      background-color: var(--primary);
+      transition: width 0.3s ease;
+    }
+    
+    nav a:hover::after {
+      width: 100%;
     }
 
     /* Main Content Area */
@@ -63,22 +121,112 @@
     /* Footer */
     footer {
       text-align: center;
-      padding: 1rem 0;
+      padding: 1.5rem 0;
       background-color: #fff;
       box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.1);
       font-size: 0.9rem;
-      color: #777;
+      color: var(--text-light);
+      margin-top: auto;
+    }
+    
+    .footer-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .social-links {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+    
+    .social-links a {
+      color: var(--text-light);
+      transition: color 0.3s ease;
+    }
+    
+    .social-links a:hover {
+      color: var(--primary);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        padding: 1rem;
+      }
+      
+      nav {
+        margin-top: 1rem;
+        width: 100%;
+        justify-content: space-around;
+      }
+      
+      .content {
+        padding: 1rem;
+      }
+    }
+    
+    /* Button Styles */
+    .btn {
+      display: inline-block;
+      padding: 0.6rem 1.5rem;
+      border-radius: var(--radius);
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+    }
+    
+    .btn-outline {
+      background-color: transparent;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+    
+    .btn-outline:hover {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .btn-success {
+      background-color: var(--secondary);
+      color: white;
+    }
+    
+    .btn-success:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(78, 205, 196, 0.3);
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Musafir</h1>
+    <div class="logo">
+      <i class="fas fa-plane-departure"></i>
+      <h1>Musafir</h1>
+    </div>
     <nav>
-      <a href="{{ url_for('index') }}">Home</a>
-      <a href="{{ url_for('google_auth') }}">Google Auth</a>
-      <a href="{{ url_for('signup') }}">Sign Up</a>
-      <a href="{{ url_for('index') }}">Plan Trip</a>
+      <a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a>
+      <a href="{{ url_for('google_auth') }}"><i class="fas fa-user-circle"></i> Login</a>
+      <a href="{{ url_for('signup') }}"><i class="fas fa-user-plus"></i> Sign Up</a>
+      <a href="{{ url_for('view_itinerary') }}"><i class="fas fa-map-marked-alt"></i> Plan Trip</a>
     </nav>
   </header>
   
@@ -88,7 +236,16 @@
   </div>
   
   <footer>
-    &copy; 2025 Musafir. All rights reserved.
+    <div class="footer-content">
+      <p>&copy; 2025 Musafir. All rights reserved.</p>
+      <p>Your perfect travel companion</p>
+      <div class="social-links">
+        <a href="#"><i class="fab fa-facebook"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-pinterest"></i></a>
+      </div>
+    </div>
   </footer>
 </body>
 </html>
