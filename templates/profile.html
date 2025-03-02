@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="profile-container">
+  <div class="profile-header">
+    <div class="profile-cover">
+      <div class="profile-avatar">
+        <span class="avatar-text">{{ user.name[0] }}</span>
+      </div>
+    </div>
+    <div class="profile-info">
+      <h1>{{ user.name }}</h1>
+      <p class="text-muted-foreground">Member since {{ user.joined }}</p>
+      <div class="profile-stats">
+        <div class="stat">
+          <span class="stat-value">{{ user.trips|length }}</span>
+          <span class="stat-label">Trips</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ user.preferences|length }}</span>
+          <span class="stat-label">Preferences</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-content">
+    <div class="profile-section">
+      <h2>Your Trips</h2>
+      <div class="trips-grid">
+        {% for trip in user.trips %}
+        <div class="trip-card">
+          <div class="trip-header">
+            <h3>{{ trip.destination }}</h3>
+            <span class="trip-status {{ trip.status }}">{{ trip.status }}</span>
+          </div>
+          <div class="trip-dates">
+            <i class="fas fa-calendar"></i>
+            <span>{{ trip.dates }}</span>
+          </div>
+          <div class="trip-actions">
+            <a href="#" class="btn-outline">View Itinerary</a>
+            {% if trip.status == "upcoming" %}
+            <a href="#" class="btn-primary">Modify</a>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="profile-section">
+      <h2>Travel Preferences</h2>
+      <div class="preferences-grid">
+        {% for pref in user.preferences %}
+        <div class="preference-tag">
+          <i class="fas fa-tag"></i>
+          <span>{{ pref }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.profile-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.profile-header {
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.profile-cover {
+  background: linear-gradient(to right, var(--primary-light), var(--primary));
+  height: 200px;
+  position: relative;
+}
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  bottom: -60px;
+  left: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+}
+
+.avatar-text {
+  font-size: 3rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.profile-info {
+  padding: 5rem 2rem 2rem;
+}
+
+.profile-info h1 {
+  margin-bottom: 0.5rem;
+  color: var(--text-dark);
+}
+
+.profile-stats {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-light);
+}
+
+.profile-section {
+  background: white;
+  border-radius: var(--radius);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow);
+}
+
+.profile-section h2 {
+  color: var(--text-dark);
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.trips-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.trip-card {
+  background: var(--bg-light);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  transition: transform 0.2s;
+}
+
+.trip-card:hover {
+  transform: translateY(-2px);
+}
+
+.trip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.trip-header h3 {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.trip-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.trip-status.completed {
+  background: var(--secondary);
+  color: white;
+}
+
+.trip-status.upcoming {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.trip-dates {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-light);
+  margin-bottom: 1rem;
+}
+
+.trip-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.preferences-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.preference-tag {
+  background: var(--bg-light);
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.preference-tag i {
+  font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 1rem;
+  }
+  
+  .profile-cover {
+    height: 150px;
+  }
+  
+  .profile-avatar {
+    width: 100px;
+    height: 100px;
+    bottom: -50px;
+  }
+  
+  .avatar-text {
+    font-size: 2.5rem;
+  }
+  
+  .profile-info {
+    padding: 4rem 1.5rem 1.5rem;
+  }
+  
+  .trips-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+{% endblock %}
+

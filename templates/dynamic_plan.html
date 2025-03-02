@@ -1,14 +1,341 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2>Dynamic Travel Planning</h2>
-  <div id="dynamic-planner">
-    <p>Select a location to begin planning.</p>
-    <button id="next-location">Next Location</button>
+<div class="planner-container">
+  <!-- Left: Map Preview -->
+  <div id="map" class="planner-map"></div>
+  
+  <!-- Right: Place Details & Actions -->
+  <div class="planner-sidebar">
+    <div class="place-card">
+      <h2>Plan Your Day</h2>
+      
+      <div id="current-place" class="current-place">
+        <div class="place-header">
+          <h3 id="place-name">Loading place...</h3>
+          <span class="place-rating">
+            <i class="fas fa-star"></i>
+            <span id="place-rating">4.5</span>
+          </span>
+        </div>
+        
+        <p id="place-description" class="place-description"></p>
+        
+        <div class="place-image-container">
+          <img id="place-image" src="/placeholder.svg" alt="Place Image" class="place-image">
+        </div>
+        
+        <div class="place-details">
+          <div class="input-group">
+            <label for="time-spent">
+              <i class="fas fa-clock"></i>
+              Time to spend
+            </label>
+            <div class="time-input">
+              <input type="number" id="time-spent" min="0.5" max="8" step="0.5" value="2">
+              <span>hours</span>
+            </div>
+          </div>
+          
+          <div class="input-group">
+            <label for="travel-distance">
+              <i class="fas fa-route"></i>
+              Travel distance
+            </label>
+            <div class="distance-input">
+              <input type="number" id="travel-distance" min="0.5" max="20" step="0.5" value="5">
+              <span>km</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="action-buttons">
+        <button id="reject-place" class="btn-reject">
+          <i class="fas fa-times"></i>
+          Skip
+        </button>
+        <button id="accept-place" class="btn-accept">
+          <i class="fas fa-check"></i>
+          Add to Plan
+        </button>
+      </div>
+      
+      <button id="end-day" class="btn-end">
+        <i class="fas fa-flag-checkered"></i>
+        Finish Planning
+      </button>
+    </div>
+    
+    <div class="selected-places">
+      <h3>Selected Places</h3>
+      <div id="selected-places-list" class="timeline">
+        <!-- Selected places will be added here -->
+      </div>
+    </div>
   </div>
-  <script>
-    // Basic dynamic planning logic placeholder
-    document.getElementById('next-location').addEventListener('click', function(){
-      alert('Next location functionality to be implemented!');
-    });
-  </script>
+</div>
+
+<style>
+.planner-container {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  width: 100%;    /* Make sure it spans 100% of the parent */
+  min-width: 0;   /* Prevent the grid from shrinking due to overflow */
+  height: calc(100vh - 128px);
+  background: white;
+}
+
+.planner-map {
+  height: 100%;
+  width: 100%;
+  z-index: 0; /* Or remove this line */
+}
+
+.planner-sidebar {
+  background: var(--bg-light);
+  border-left: 1px solid #eee;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.place-card {
+  background: white;
+  padding: 1.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.place-card h2 {
+  color: var(--primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.current-place {
+  background: var(--bg-light);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.place-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.place-header h3 {
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.place-rating {
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.place-description {
+  color: var(--text-light);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.place-image-container {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.place-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.place-details {
+  display: grid;
+  gap: 1rem;
+}
+
+.input-group {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.input-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-dark);
+  font-weight: 500;
+}
+
+.time-input,
+.distance-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.time-input input,
+.distance-input input {
+  width: 80px;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.action-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn-reject,
+.btn-accept,
+.btn-end {
+  padding: 0.75rem;
+  border-radius: var(--radius);
+  border: none;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-reject {
+  background: var(--bg-light);
+  color: var(--text-dark);
+}
+
+.btn-reject:hover {
+  background: #eee;
+}
+
+.btn-accept {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-accept:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.btn-end {
+  background: var(--secondary);
+  color: white;
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.btn-end:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.selected-places {
+  padding: 1.5rem;
+  flex: 1;
+}
+
+.selected-places h3 {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--text-dark);
+}
+
+.timeline {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--primary-light);
+}
+
+.timeline-item {
+  position: relative;
+  padding-bottom: 2rem;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -2rem;
+  top: 0;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid var(--primary);
+}
+
+.timeline-content {
+  background: white;
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--shadow);
+}
+
+.timeline-time {
+  font-weight: 500;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+}
+
+.timeline-place {
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .planner-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+
+  .planner-map {
+    height: 40vh;
+  }
+
+  .planner-sidebar {
+    height: 60vh;
+  }
+}
+</style>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='js/dynamic_plan.js') }}"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof initMap === 'function') {
+      initMap();
+    } else {
+      console.error('initMap function not found');
+    }
+  });
+</script>
 {% endblock %}
+

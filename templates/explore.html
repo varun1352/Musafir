@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="explore-container">
+  <div class="explore-header">
+    <h1>Explore Curated Trips</h1>
+    <p>Discover hand-picked itineraries from experienced travelers</p>
+  </div>
+
+  <section class="featured-section">
+    <h2>Featured Itineraries</h2>
+    <div class="featured-grid">
+      {% for trip in featured[:3] %}
+      <div class="featured-card">
+        <div class="featured-image">
+          <img src="/static/images/{{ trip.image }}" alt="{{ trip.title }}">
+          <div class="featured-overlay">
+            <span class="featured-duration">
+              <i class="fas fa-clock"></i>
+              {{ trip.duration }}
+            </span>
+          </div>
+        </div>
+        <div class="featured-content">
+          <h3>{{ trip.title }}</h3>
+          <div class="featured-rating">
+            <div class="stars">
+              {% for i in range(5) %}
+              <i class="fas fa-star {% if i < trip.rating|int %}filled{% endif %}"></i>
+              {% endfor %}
+            </div>
+            <span>{{ trip.rating }} ({{ trip.reviews }})</span>
+          </div>
+          <div class="featured-highlights">
+            {% for highlight in trip.highlights %}
+            <span class="highlight-tag">{{ highlight }}</span>
+            {% endfor %}
+          </div>
+          <a href="#" class="btn-primary">View Itinerary</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% for category in categories %}
+  <section class="category-section">
+    <div class="category-header">
+      <h2>{{ category.name }}</h2>
+      <a href="#" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+    </div>
+    <div class="trips-grid">
+      {% for trip in category.trips %}
+      <div class="trip-card">
+        <div class="trip-image">
+          <img src="/static/images/{{ trip.image }}" alt="{{ trip.title }}">
+        </div>
+        <div class="trip-content">
+          <h3>{{ trip.title }}</h3>
+          <div class="trip-info">
+            <span><i class="fas fa-clock"></i> {{ trip.duration }}</span>
+            <span><i class="fas fa-star"></i> {{ trip.rating }}</span>
+          </div>
+          <a href="#" class="btn-outline">Learn More</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+</div>
+
+<style>
+.explore-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.explore-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.explore-header h1 {
+  color: var(--primary);
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  font-family: 'Quicksand', sans-serif;
+}
+
+.explore-header p {
+  color: var(--text-light);
+  font-size: 1.1rem;
+}
+
+.featured-section {
+  margin-bottom: 4rem;
+}
+
+.featured-section h2 {
+  color: var(--text-dark);
+  font-size: 1.8rem;
+  margin-bottom: 2rem;
+}
+
+.featured-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.featured-card {
+  background: white;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s;
+}
+
+.featured-card:hover {
+  transform: translateY(-4px);
+}
+
+.featured-image {
+  position: relative;
+  height: 200px;
+}
+
+.featured-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.featured-overlay {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.featured-duration {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.featured-content {
+  padding: 1.5rem;
+}
+
+.featured-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--text-dark);
+}
+
+.featured-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.stars {
+  color: #ffd700;
+}
+
+.stars .fa-star.filled {
+  color: #ffd700;
+}
+
+.featured-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.highlight-tag {
+  background: var(--bg-light);
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  color: var(--text-light);
+}
+
+.category-section {
+  margin-bottom: 3rem;
+}
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.category-header h2 {
+  color: var(--text-dark);
+  font-size: 1.5rem;
+}
+
+.view-all {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.trips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.trip-card {
+  background: white;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s;
+}
+
+.trip-card:hover {
+  transform: translateY(-2px);
+}
+
+.trip-image {
+  height: 150px;
+}
+
+.trip-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.trip-content {
+  padding: 1rem;
+}
+
+.trip-content h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-dark);
+}
+
+.trip-info {
+  display: flex;
+  gap: 1rem;
+  color: var(--text-light);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.trip-info span {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+@media (max-width: 768px) {
+  .explore-container {
+    padding: 1rem;
+  }
+  
+  .explore-header h1 {
+    font-size: 2rem;
+  }
+  
+  .featured-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .trips-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+</style>
+{% endblock %}
+

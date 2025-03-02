@@ -1,8 +1,122 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2>Sign in with Google</h2>
-  <p>To get started, please sign in using your Google account. This will streamline your signup process.</p>
-  <a href="{{ url_for('google_auth_redirect') }}">
-    <button>Sign in with Google</button>
-  </a>
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <i class="fas fa-plane-departure text-primary text-4xl mb-4"></i>
+      <h2 class="text-2xl font-bold mb-2">Welcome to Musafir</h2>
+      <p class="text-muted-foreground mb-6">Your perfect travel companion awaits</p>
+    </div>
+    
+    <div class="auth-content">
+      <p class="text-center mb-6">Sign in with your Google account to get started with personalized travel planning.</p>
+      
+      <a href="{{ url_for('google_auth_redirect') }}" class="google-auth-button">
+        <img src="https://www.google.com/favicon.ico" alt="Google" class="w-5 h-5">
+        <span>Continue with Google</span>
+      </a>
+      
+      <div class="auth-divider">
+        <span>or</span>
+      </div>
+      
+      <a href="{{ url_for('signup') }}" class="email-signup-button">
+        <i class="fas fa-envelope"></i>
+        <span>Sign up with Email</span>
+      </a>
+    </div>
+    
+    <div class="auth-footer">
+      <p class="text-sm text-muted-foreground">
+        By continuing, you agree to Musafir's
+        <a href="#" class="text-primary hover:underline">Terms of Service</a> and
+        <a href="#" class="text-primary hover:underline">Privacy Policy</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<style>
+.auth-container {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.auth-card {
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.auth-header {
+  margin-bottom: 2rem;
+}
+
+.google-auth-button,
+.email-signup-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.google-auth-button {
+  background: white;
+  border: 1px solid #ddd;
+  color: var(--text-dark);
+}
+
+.google-auth-button:hover {
+  background: #f8f8f8;
+  border-color: #ccc;
+}
+
+.email-signup-button {
+  background: var(--primary);
+  color: white;
+}
+
+.email-signup-button:hover {
+  background: var(--primary-dark);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0;
+  color: var(--text-light);
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #eee;
+}
+
+.auth-divider span {
+  padding: 0 1rem;
+  font-size: 0.875rem;
+}
+
+.auth-footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+</style>
 {% endblock %}
+

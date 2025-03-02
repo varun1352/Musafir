@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 from cerebras.cloud.sdk import Cerebras
 from dotenv import load_dotenv
 import json
-
+import re
 load_dotenv()
 
 # Cerebras API configuration
@@ -111,7 +111,6 @@ def finalize_trip():
     Generates two outputs when finalizing the trip:
       1. A Markdown-formatted itinerary for display.
       2. A JSON itinerary for backend processing and database storage.
-         (For now, the JSON is printed and stored in a placeholder function.)
     """
     global final_markdown, final_json
 
@@ -134,8 +133,8 @@ def finalize_trip():
 
     # 2. Generate JSON itinerary
     json_prompt = (
-        "Generate a JSON itinerary for the following trip plan. Output only valid JSON (do not include any markdown formatting, headers, or code fences). "
-        "The JSON must exactly follow this structure:\n\n"
+        "Generate a JSON itinerary for the following trip plan. Output only valid JSON without any extra text or markdown formatting. "
+        "Ensure the output exactly follows this structure:\n\n"
         "{\n"
         "  \"trip\": {\n"
         "    \"destination\": \"<destination>\",\n"
@@ -158,33 +157,26 @@ def finalize_trip():
         {"role": "user", "content": json_prompt}
     ]
     json_response = call_cerebras_api(messages_json)
-    
-    # Clean up response: remove common markdown code fences and any extraneous text.
-    # Remove any occurrences of "```json" or "```"
-    json_response = json_response.replace("```json", "").replace("```", "").strip()
-    
-    # Optionally, if the response includes a prefix like "Here's the JSON itinerary for your trip:" remove it.
-    if json_response.lower().startswith("here's"):
-        # Split on the first '{' and take from there
-        json_response = json_response[json_response.find("{"):].strip()
-    
+    print("Raw JSON response:", json_response)
+
+    # Use regex to extract the JSON object from the response.
+    # This regex captures everything from the first '{' to the last '}'.
+    json_match = re.search(r'(\{[\s\S]*\})', json_response)
+    if json_match:
+        json_str = json_match.group(1)
+    else:
+        json_str = json_response.strip()
+
     try:
-        final_json = json.loads(json_response)
+        final_json = json.loads(json_str)
     except Exception as e:
         print("Error parsing JSON itinerary:", e)
         final_json = {"error": "Failed to parse JSON itinerary", "raw_response": json_response}
-    
-    print("Final JSON itinerary:", json.dumps(final_json, indent=2))
-    
-    # Store the JSON itinerary in the database (placeholder)
-    store_json_itinerary(final_json)
-    
-    return jsonify({
-        "finalized": True,
-        "markdown": final_markdown,
-        "json_itinerary": final_json
-    })
 
+    print("Final JSON itinerary:", json.dumps(final_json, indent=2))
+    store_json_itinerary(final_json)
+
+    return jsonify({"finalized": True})
 
 @app.route("/view_itinerary")
 def view_itinerary():
@@ -223,9 +215,89 @@ def signup():
         return redirect(url_for("index"))
     return render_template("signup.html")
 
+@app.route('/map')
+def map_view():
+    return render_template('map_view.html')
+
+@app.route('/day-planner')
+def day_planner():
+    return render_template('dynamic_plan.html')
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+# Add these new routes to your existing app.py
+
+@app.route('/profile')
+def profile():
+    # In a real app, you'd get this from your database
+    user_data = {
+        "name": "John Doe",
+        "email": "john@example.com",
+        "joined": "January 2025",
+        "trips": [
+            {
+                "id": 1,
+                "destination": "New York City",
+                "dates": "Jul 1-3, 2023",
+                "status": "completed"
+            },
+            {
+                "id": 2,
+                "destination": "San Francisco",
+                "dates": "Aug 15-20, 2023",
+                "status": "upcoming"
+            }
+        ],
+        "preferences": ["Adventure", "Cultural"]
+    }
+    return render_template('profile.html', user=user_data)
+
+@app.route('/explore')
+def explore():
+    # Static featured itineraries
+    featured_trips = [
+        {
+            "id": 1,
+            "title": "NYC Classic Weekend",
+            "duration": "3 days",
+            "rating": 4.8,
+            "reviews": 156,
+            "image": "nyc_weekend.jpg",
+            "highlights": ["Central Park", "Times Square", "Statue of Liberty"]
+        },
+        {
+            "id": 2,
+            "title": "San Francisco Bay Tour",
+            "duration": "4 days",
+            "rating": 4.7,
+            "reviews": 98,
+            "image": "sf_bay.jpg",
+            "highlights": ["Golden Gate Bridge", "Alcatraz", "Fisherman's Wharf"]
+        },
+        # Add more featured trips
+    ]
+    
+    categories = [
+        {
+            "name": "Weekend Getaways",
+            "trips": featured_trips[:3]
+        },
+        {
+            "name": "Family Adventures",
+            "trips": featured_trips[1:4]
+        },
+        {
+            "name": "Cultural Experiences",
+            "trips": featured_trips[2:5]
+        }
+    ]
+    
+    return render_template('explore.html', featured=featured_trips, categories=categories)
+
 # -----------------------------
 # Main entry point
 # -----------------------------
 if __name__ == "__main__":
     app.run(debug=True)
-

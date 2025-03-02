@@ -1,44 +1,262 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2>Sign Up</h2>
-  <form action="{{ url_for('signup') }}" method="post">
-    <div>
-      <label for="username">Username:</label>
-      <input type="text" id="username" name="username" required>
+<div class="signup-container">
+  <div class="signup-card">
+    <div class="signup-header">
+      <h2 class="text-2xl font-bold mb-2">Create your account</h2>
+      <p class="text-muted-foreground">Join Musafir to start planning your perfect journey</p>
     </div>
-    <div>
-      <label for="email">Email:</label>
-      <input type="email" id="email" name="email" required>
-    </div>
-    <h3>Your Travel Preferences</h3>
-    <p>Please select your preferred travel style:</p>
-    <div>
-      <input type="radio" id="adventure" name="preference" value="adventure" required>
-      <label for="adventure">Adventure</label>
-      <p>Looking for thrills and new experiences.</p>
-    </div>
-    <div>
-      <input type="radio" id="relaxation" name="preference" value="relaxation">
-      <label for="relaxation">Relaxation</label>
-      <p>Prefer laid-back, stress-free environments.</p>
-    </div>
-    <div>
-      <input type="radio" id="cultural" name="preference" value="cultural">
-      <label for="cultural">Cultural</label>
-      <p>Interested in history, art, and local customs.</p>
-    </div>
-    <div>
-      <input type="radio" id="family" name="preference" value="family">
-      <label for="family">Family Friendly</label>
-      <p>Looking for experiences suitable for all ages.</p>
-    </div>
-    <div>
-      <input type="radio" id="nightlife" name="preference" value="nightlife">
-      <label for="nightlife">Nightlife</label>
-      <p>Prefer places with vibrant night-time activities.</p>
-    </div>
-    <div>
-      <button type="submit">Sign Up</button>
-    </div>
-  </form>
+
+    <form action="{{ url_for('signup') }}" method="post" class="signup-form">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <div class="input-wrapper">
+          <i class="fas fa-user"></i>
+          <input type="text" id="username" name="username" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <div class="input-wrapper">
+          <i class="fas fa-envelope"></i>
+          <input type="email" id="email" name="email" required>
+        </div>
+      </div>
+
+      <div class="preferences-section">
+        <h3>Travel Preferences</h3>
+        <p class="text-muted-foreground mb-4">Choose your preferred travel style to get personalized recommendations</p>
+        
+        <div class="preferences-grid">
+          <label class="preference-card">
+            <input type="radio" name="preference" value="adventure" required>
+            <div class="card-content">
+              <i class="fas fa-mountain"></i>
+              <h4>Adventure</h4>
+              <p>Thrilling experiences and outdoor activities</p>
+            </div>
+          </label>
+
+          <label class="preference-card">
+            <input type="radio" name="preference" value="relaxation">
+            <div class="card-content">
+              <i class="fas fa-spa"></i>
+              <h4>Relaxation</h4>
+              <p>Peaceful getaways and wellness experiences</p>
+            </div>
+          </label>
+
+          <label class="preference-card">
+            <input type="radio" name="preference" value="cultural">
+            <div class="card-content">
+              <i class="fas fa-landmark"></i>
+              <h4>Cultural</h4>
+              <p>Historical sites and local traditions</p>
+            </div>
+          </label>
+
+          <label class="preference-card">
+            <input type="radio" name="preference" value="family">
+            <div class="card-content">
+              <i class="fas fa-child"></i>
+              <h4>Family</h4>
+              <p>Kid-friendly activities and attractions</p>
+            </div>
+          </label>
+
+          <label class="preference-card">
+            <input type="radio" name="preference" value="nightlife">
+            <div class="card-content">
+              <i class="fas fa-cocktail"></i>
+              <h4>Nightlife</h4>
+              <p>Entertainment and vibrant city experiences</p>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-button">
+        Create Account
+        <i class="fas fa-arrow-right"></i>
+      </button>
+
+      <div class="auth-footer">
+        <p>Already have an account? <a href="{{ url_for('google_auth') }}">Sign in</a></p>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.signup-container {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.signup-card {
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 2rem;
+  width: 100%;
+  max-width: 800px;
+}
+
+.signup-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.signup-form {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: var(--text-dark);
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: var(--radius);
+  padding: 0.5rem 1rem;
+  background: white;
+  transition: all 0.2s;
+}
+
+.input-wrapper:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.input-wrapper i {
+  color: var(--text-light);
+  margin-right: 0.75rem;
+}
+
+.input-wrapper input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 1rem;
+  background: transparent;
+}
+
+.preferences-section {
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.preferences-section h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+}
+
+.preferences-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.preference-card {
+  position: relative;
+  cursor: pointer;
+}
+
+.preference-card input {
+  position: absolute;
+  opacity: 0;
+}
+
+.card-content {
+  border: 2px solid #eee;
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.card-content i {
+  font-size: 2rem;
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+
+.card-content h4 {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.card-content p {
+  font-size: 0.875rem;
+  color: var(--text-light);
+}
+
+.preference-card input:checked + .card-content {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.preference-card:hover .card-content {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+}
+
+.submit-button {
+  background: var(--primary);
+  color: white;
+  padding: 1rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.submit-button:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+}
+
+.auth-footer a {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .signup-card {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+
+  .preferences-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
 {% endblock %}
+

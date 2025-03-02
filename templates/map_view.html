@@ -1,13 +1,340 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2>Map View</h2>
-  <!-- Placeholder for the map. In production, include the Leaflet.js library and its CSS -->
-  <div id="map" style="height: 500px;"></div>
-  <script>
-    // Example: Initialize a basic Leaflet map (ensure you add Leaflet.js in your production build)
-    var map = L.map('map').setView([40.7128, -74.0060], 13); // Center on New York City
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-  </script>
+<div class="map-container">
+  <!-- Left Column: Itinerary -->
+  <div class="itinerary-column">
+    <div class="day-selector">
+      <button id="prev-day" class="day-nav-btn">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <div class="current-day">
+        <span id="current-day">Day 1</span>
+        <span id="current-date" class="text-muted-foreground">2023-07-01</span>
+      </div>
+      <button id="next-day" class="day-nav-btn">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+
+    <div class="timeline-container">
+      <h2>Today's Itinerary</h2>
+      <div id="plan-list" class="timeline">
+        <!-- Timeline items will be added here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Middle Column: Map -->
+  <div id="map" class="map-column"></div>
+
+  <!-- Right Column: People -->
+  <div class="people-column">
+    <div class="people-header">
+      <h2>People Nearby</h2>
+      <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="same-time">Same Time</button>
+      </div>
+    </div>
+
+    <div id="people-list" class="people-list">
+      <!-- People cards will be added here -->
+    </div>
+  </div>
+
+  <!-- User Popup -->
+  <div id="user-popup" class="popup">
+    <div class="popup-content">
+      <h3 id="place-name"></h3>
+      <div id="user-list"></div>
+      <button id="close-popup">Close</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.map-container {
+  display: grid;
+  grid-template-columns: 350px 500px 350px;
+  height: calc(100vh - 128px);
+  background: white;
+}
+
+/* Left Column: Itinerary */
+.itinerary-column {
+  background: white;
+  border-right: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+}
+
+.day-selector {
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #eee;
+}
+
+.day-nav-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg-light);
+  color: var(--primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.day-nav-btn:hover {
+  background: var(--primary-light);
+}
+
+.current-day {
+  text-align: center;
+}
+
+#current-day {
+  font-weight: 600;
+  display: block;
+}
+
+.timeline-container {
+  padding: 1.5rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.timeline-container h2 {
+  color: var(--primary);
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Middle Column: Map */
+.map-column {
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+}
+
+/* Right Column: People */
+.people-column {
+  background: white;
+  border-left: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+}
+
+.people-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.people-header h2 {
+  color: var(--text-dark);
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.filter-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--bg-light);
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-btn.active {
+  background: var(--primary);
+  color: white;
+}
+
+.people-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.person-card {
+  background: var(--bg-light);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: transform 0.2s;
+}
+
+.person-card:hover {
+  transform: translateY(-2px);
+}
+
+.person-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.person-info {
+  flex: 1;
+}
+
+.person-name {
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 0.25rem;
+}
+
+.person-time {
+  font-size: 0.875rem;
+  color: var(--text-light);
+}
+
+.connect-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.connect-btn:hover {
+  background: var(--primary-dark);
+}
+
+/* Popup Styles */
+.popup {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.popup-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 2rem;
+  border-radius: var(--radius);
+  width: 90%;
+  max-width: 500px;
+}
+
+/* Leaflet Custom Styles */
+.custom-marker {
+  background: var(--primary);
+  border: 2px solid white;
+  border-radius: 50%;
+  color: white;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.marker-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--primary);
+  transition: all 0.3s ease;
+}
+
+.custom-marker:hover .marker-content {
+  transform: scale(1.1);
+  background: var(--primary-dark);
+}
+
+@media (max-width: 1200px) {
+  .map-container {
+    grid-template-columns: 300px 1fr 300px;
+  }
+}
+
+@media (max-width: 992px) {
+  .map-container {
+    grid-template-columns: 250px 1fr 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .map-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+  }
+
+  .itinerary-column {
+    border-right: none;
+    border-bottom: 1px solid #eee;
+    max-height: 40vh;
+  }
+
+  .map-column {
+    height: 40vh;
+  }
+
+  .people-column {
+    border-left: none;
+    border-top: 1px solid #eee;
+    max-height: 40vh;
+  }
+}
+</style>
+
+<!-- Load Leaflet CSS first -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
+
+<!-- Load Leaflet JavaScript -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
+
+<!-- Load our map script -->
+<script src="{{ url_for('static', filename='js/map.js') }}" defer></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof initMap === 'function') {
+      initMap();
+    } else {
+      console.error('initMap function not found');
+    }
+  });
+</script>
 {% endblock %}
+
