@@ -75,6 +75,13 @@
   </div>
 </div>
 
+<!-- Add this right after the map container div -->
+{% if map_data %}
+<script id="map-data" type="application/json">
+  {{ map_data|tojson|safe }}
+</script>
+{% endif %}
+
 <style>
 .map-container {
   display: grid;
@@ -353,11 +360,14 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     if (typeof initMap === 'function') {
-      initMap();
+      const mapData = {{ map_data|tojson|safe if map_data else 'null' }};
+      initMap(mapData);
     } else {
       console.error('initMap function not found');
     }
   });
 </script>
+
+
 {% endblock %}
 

@@ -5,6 +5,7 @@ import json
 from threading import local
 from datetime import timedelta
 from math import radians, cos
+from init_data import create_dummy_data
 
 class Database:
     _thread_local = local()
@@ -168,13 +169,30 @@ class Database:
         )
         ''')
 
+        # Contact requests table
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS contact_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            from_user_id INTEGER NOT NULL,
+            to_user_id INTEGER NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            token TEXT UNIQUE NOT NULL,
+            FOREIGN KEY (from_user_id) REFERENCES users (id),
+            FOREIGN KEY (to_user_id) REFERENCES users (id),
+            UNIQUE(from_user_id, to_user_id)
+        )
+        ''')
+
         # Verify table schemas
         self._check_table_schema(cursor, 'users', [
             'id', 'name', 'email', 'password_hash', 'google_id', 
             'profile_image', 'joined_date', 'is_active'
         ])
 
-        # Insert sample data if the database is new
+        create_dummy_data(cursor)
+        # Add sample users with trips
         cursor.execute("SELECT COUNT(*) FROM users")
         if cursor.fetchone()[0] == 0:
             self._insert_sample_data()
@@ -185,77 +203,79 @@ class Database:
         """Insert sample data for testing purposes."""
         conn = self.get_connection()
         cursor = conn.cursor()
+        now = datetime.now()
 
         # Sample users
-        cursor.execute('''
-        INSERT INTO users (name, email, password_hash, joined_date)
-        VALUES (?, ?, ?, ?)
-        ''', ('John Doe', 'john@example.com', 'pbkdf2:sha256:150000$abc123', datetime.now().strftime('%Y-%m-%d')))
-        
-        user_id = cursor.lastrowid
-        
+        users = [
+            ('John Doe', 'john@example.com', 'pbkdf2:sha256:150000$abc123'),
+            ('Alice Smith', 'alice@example.com', 'pbkdf2:sha256:150000$def456'),
+            ('Bob Wilson', 'bob@example.com', 'pbkdf2:sha256:150000$ghi789'),
+            ('Emma Davis', 'emma@example.com', 'pbkdf2:sha256:150000$jkl012')
+        ]
+
+        user_ids = []
+        for name, email, password_hash in users:
+            cursor.execute('''
+            INSERT INTO users (name, email, password_hash, joined_date)
+            VALUES (?, ?, ?, ?)
+            ''', (name, email, password_hash, now.strftime('%Y-%m-%d')))
+            user_ids.append(cursor.lastrowid)
+
         # Sample preferences
         preferences = ['Adventure', 'Cultural', 'Food', 'Photography']
-        for pref in preferences:
-            cursor.execute('''
-            INSERT INTO user_preferences (user_id, preference_type, preference_value)
-            VALUES (?, ?, ?)
-            ''', (user_id, 'travel_style', pref))
-        
-        # Sample trip
-        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        cursor.execute('''
-        INSERT INTO trips (user_id, title, destination, start_date, end_date, status, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (user_id, 'New York Adventure', 'New York', '2023-07-01', '2023-07-07', 'upcoming', now, now))
-        
-        trip_id = cursor.lastrowid
-        
-        # Sample places
+        for user_id in user_ids:
+            for pref in preferences:
+                cursor.execute('''
+                INSERT INTO user_preferences (user_id, preference_type, preference_value)
+                VALUES (?, ?, ?)
+                ''', (user_id, 'travel_style', pref))
+
+        # Sample trips for next three days
         places = [
-            ('Central Park', 'Iconic urban park with various attractions', 40.7829, -73.9654, '/static/images/central_park.jpg', 4.8, 'New York, NY', 'park', 'cp123'),
-            ('Metropolitan Museum of Art', 'One of the world\'s largest art museums', 40.7794, -73.9632, '/static/images/met.jpg', 4.9, 'New York, NY', 'museum', 'met123'),
-            ('Times Square', 'Iconic intersection known for bright lights', 40.7580, -73.9855, '/static/images/times_square.jpg', 4.6, 'New York, NY', 'landmark', 'ts123')
+            ('Central Park', 'Iconic urban park', 40.7829, -73.9654),
+            ('Times Square', 'Bustling tourist spot', 40.7580, -73.9855),
+            ('Empire State Building', 'Historic skyscraper', 40.7484, -73.9857),
+            ('Statue of Liberty', 'Famous monument', 40.6892, -74.0445),
+            ('Brooklyn Bridge', 'Historic bridge', 40.7061, -73.9969),
+            ('Metropolitan Museum', 'World-class museum', 40.7794, -73.9632)
         ]
-        
-        for place in places:
+
+        # Create places
+        place_ids = []
+        for name, desc, lat, lng in places:
             cursor.execute('''
-            INSERT INTO places (name, description, latitude, longitude, image_url, rating, address, place_type, external_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', place)
-            
-            place_id = cursor.lastrowid
-            
-            # Sample place details
-            if place[0] == 'Central Park':
-                details = [
-                    ('highlight', 'Bethesda Fountain'),
-                    ('highlight', 'Belvedere Castle'),
-                    ('highlight', 'The Lake'),
-                    ('activity', 'Walking Tours'),
-                    ('activity', 'Boating'),
-                    ('activity', 'Zoo Visit')
-                ]
+            INSERT INTO places (name, description, latitude, longitude)
+            VALUES (?, ?, ?, ?)
+            ''', (name, desc, lat, lng))
+            place_ids.append(cursor.lastrowid)
+
+        # Create trips for each user
+        for user_id in user_ids:
+            # Create a trip for each of the next three days
+            for day_offset in range(3):
+                start_date = (now + timedelta(days=day_offset)).strftime('%Y-%m-%d')
+                end_date = (now + timedelta(days=day_offset + 2)).strftime('%Y-%m-%d')
                 
-                for detail_type, detail_value in details:
+                cursor.execute('''
+                INSERT INTO trips (user_id, title, destination, start_date, end_date, status, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (user_id, f'NYC Trip {day_offset + 1}', 'New York', start_date, end_date, 'upcoming', 
+                      now.strftime('%Y-%m-%d %H:%M:%S'), now.strftime('%Y-%m-%d %H:%M:%S')))
+                
+                trip_id = cursor.lastrowid
+
+                # Add random places to the itinerary
+                import random
+                selected_places = random.sample(place_ids, 3)  # Pick 3 random places
+                for i, place_id in enumerate(selected_places):
+                    start_time = f"{9 + i * 3:02d}:00"  # 9:00, 12:00, 15:00
+                    end_time = f"{12 + i * 3:02d}:00"   # 12:00, 15:00, 18:00
+                    
                     cursor.execute('''
-                    INSERT INTO place_details (place_id, detail_type, detail_value)
-                    VALUES (?, ?, ?)
-                    ''', (place_id, detail_type, detail_value))
-        
-        # Sample itinerary items
-        itinerary_items = [
-            (trip_id, 1, 1, '09:00', '11:00', 'Morning walk through the park', 1),
-            (trip_id, 2, 1, '12:00', '15:00', 'Explore the art collections', 2),
-            (trip_id, 3, 1, '16:00', '18:00', 'Experience the vibrant atmosphere', 3)
-        ]
-        
-        for item in itinerary_items:
-            cursor.execute('''
-            INSERT INTO itinerary_items (trip_id, place_id, day, start_time, end_time, notes, order_index)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', item)
-        
+                    INSERT INTO itinerary_items (trip_id, place_id, day, start_time, end_time, notes, order_index)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ''', (trip_id, place_id, 1, start_time, end_time, f'Visit {places[place_id-1][0]}', i+1))
+
         conn.commit()
 
     # User-related methods
@@ -411,9 +431,9 @@ class Database:
         
         try:
             cursor.execute('''
-            INSERT INTO places (name, description, latitude, longitude, image_url, rating, address, place_type, external_id)
+            INSERT INTO places (name, description, latitude, longitude, address, image_url, rating, place_type, external_id)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (name, description, latitude, longitude, image_url, rating, address, place_type, external_id))
+            ''', (name, description, latitude, longitude, address, image_url, rating, place_type, external_id))
             conn.commit()
             return cursor.lastrowid
         except sqlite3.IntegrityError:
@@ -711,7 +731,7 @@ class Database:
                 day_data['places'].append(place_data)
             
             map_data['days'].append(day_data)
-        
+            print(map_data)
         return map_data
 
     # Helper methods for dynamic planning
@@ -847,8 +867,9 @@ class Database:
                     place_data = {
                         'name': activity['place'],
                         'description': activity['description'],
-                        'latitude': 0.0,  # You would need to get real coordinates
-                        'longitude': 0.0,  # You would need to get real coordinates
+                        'latitude': activity.get('latitude', 0.0),
+                        'longitude': activity.get('longitude', 0.0),
+                        'address': activity.get('address', '')
                     }
                     place_id = self.create_place(**place_data)
 
@@ -867,4 +888,48 @@ class Database:
         except Exception as e:
             print(f"Error storing itinerary: {str(e)}")
             return None
+
+    def create_contact_request(self, from_user_id, to_user_id):
+        """Create a new contact request."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Generate a unique token
+        import uuid
+        token = str(uuid.uuid4())
+        
+        try:
+            cursor.execute('''
+            INSERT INTO contact_requests (from_user_id, to_user_id, status, created_at, updated_at, token)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ''', (from_user_id, to_user_id, 'pending', now, now, token))
+            conn.commit()
+            return token
+        except sqlite3.IntegrityError:
+            # Request already exists
+            return None
+
+    def get_contact_request_by_token(self, token):
+        """Get a contact request by its token."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+        SELECT * FROM contact_requests WHERE token = ?
+        ''', (token,))
+        return cursor.fetchone()
+
+    def approve_contact_request(self, token):
+        """Approve a contact request."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        cursor.execute('''
+        UPDATE contact_requests
+        SET status = 'approved', updated_at = ?
+        WHERE token = ? AND status = 'pending'
+        ''', (now, token))
+        conn.commit()
+        return cursor.rowcount > 0
 

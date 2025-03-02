@@ -8,8 +8,11 @@ from datetime import datetime, timedelta
 import requests
 from cerebras.cloud.sdk import Cerebras
 from datetime import timedelta
-
+from dotenv import load_dotenv
 from database import Database
+
+load_dotenv()
+
 # Initialize Flask app
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
@@ -116,6 +119,39 @@ def store_json_itinerary(json_data, user_id=None):
     except Exception as e:
         print(f"Error storing itinerary: {str(e)}")
         return None
+
+# Add this new function
+def geocode_address(address):
+    """Convert an address to geographic coordinates (latitude and longitude)."""
+    url = "https://nominatim.openstreetmap.org/search"
+    params = {
+        'q': address,
+        'format': 'json'
+    }
+    
+    headers = {
+        'User-Agent': 'Musafir Travel App (your_email@example.com)'  # Replace with your app name and email
+    }
+    
+    try:
+        response = requests.get(url, params=params, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        
+        if data:
+            latitude = float(data[0]['lat'])
+            longitude = float(data[0]['lon'])
+            return latitude, longitude
+        else:
+            print(f"No geocoding results found for address: {address}")
+            return None, None
+    
+    except requests.exceptions.RequestException as e:
+        print(f"Error: Unable to connect to the geocoding service. Details: {e}")
+        return None, None
+    except ValueError as ve:
+        print(f"Error: {ve}")
+        return None, None
 
 # Add this new route to handle placeholder images
 @app.route('/placeholder.svg')
@@ -234,7 +270,7 @@ def upload_pdf():
         messages = [
             {"role": "system", "content": """You are a travel assistant that processes uploaded PDF itineraries.
             Extract the key information and format it as a clear, structured itinerary.
-            Use Markdown formatting for better readability."""},
+            Use Markdown formatting for better readability. But one very important thing to follow is that you will only suggest places which have specific addreses whcih are accessible in your knowledge and only sureshort addresses which would actually give lat-long when the system runs the geocoding api on the provided addresses"""},
             {"role": "user", "content": f"Extract and structure the travel itinerary from this PDF: {filename}"}
         ]
 
@@ -249,71 +285,92 @@ def upload_pdf():
         print(f"Error in upload_pdf: {str(e)}")
         return jsonify({"error": "An error occurred processing your PDF"}), 500
 
-@app.route("/finalize_trip", methods=["POST", "GET"])
+# Update the finalize_trip function
+@app.route("/finalize_trip", methods=["POST"])
 def finalize_trip():
     """Generates final itinerary in both Markdown and JSON formats."""
     try:
         global final_markdown, final_json
         
-        combined_itinerary = "\n".join(user_itinerary)
+        # If this is a dynamic plan submission
+        if request.json.get('dynamic_plan'):
+            places = request.json.get('places', [])
+            # Convert dynamic plan to itinerary format
+            itinerary_text = "Here's your trip itinerary:\n\n"
+            for place in places:
+                itinerary_text += f"- Visit {place['name']}\n"
+                itinerary_text += f"  * {place['description']}\n"
+                itinerary_text += f"  * Time: {place['time']}\n\n"
+            
+            combined_itinerary = itinerary_text
+        else:
+            combined_itinerary = "\n".join(user_itinerary)
 
-        # Generate Markdown itinerary
+        # Generate Markdown itinerary with addresses
         messages_markdown = [
             {"role": "system", "content": (
-                "You are an expert travel planner. Your task is to generate a structured, well-formatted markdown travel itinerary. "
-                "Use proper Markdown syntax with headers (# for main headers, ## for subheaders), bullet points, emphasis (**bold** and *italic*), and horizontal rules (---) where appropriate."
+                "You are an expert travel planner. Generate a structured markdown itinerary. "
+                "For each place, include its full address in parentheses after the place name.  Also in the itinerary only include the palce which have an actual address otherwise skip the places which have generic named addresses which wouldnt work for geocoding"
+                "Example: '## Central Park (Central Park, New York, NY 10022, USA)'"
             )},
-            {"role": "user", "content": (
-                f"Generate a final, markdown-formatted itinerary based on this travel plan:\n\n{combined_itinerary}\n\n"
-                "Use clear headers, bullet points, and markdown elements for easy readability. The final itinerary should look like a well-structured travel guide."
-            )}
+            {"role": "user", "content": f"Create a detailed itinerary with addresses for:\n\n{combined_itinerary}"}
         ]
 
         final_markdown = call_cerebras_api(messages_markdown)
-        print("Final Markdown itinerary:", final_markdown)
 
-        # Generate JSON itinerary
-        # 2. Generate JSON itinerary
+        # Generate JSON itinerary with addresses
         json_prompt = (
-            "Generate a JSON itinerary for the following trip plan. Output only valid JSON without any extra text or markdown formatting. "
-            "Ensure the output exactly follows this structure:\n\n"
+            "Generate a JSON itinerary with full addresses. Output format:\n"
             "{\n"
             "  \"trip\": {\n"
-            "    \"destination\": \"<destination>\",\n"
-            "    \"dates\": {\"start\": \"<YYYY-MM-DD>\", \"end\": \"<YYYY-MM-DD>\"},\n"
+            "    \"destination\": \"<city, country>\",\n"
+            "    \"dates\": {\"start\": \"YYYY-MM-DD\", \"end\": \"YYYY-MM-DD\"},\n"
             "    \"itinerary\": [\n"
             "      {\n"
-            "        \"day\": <day number>,\n"
-            "        \"date\": \"<YYYY-MM-DD>\",\n"
+            "        \"day\": <number>,\n"
+            "        \"date\": \"YYYY-MM-DD\",\n"
             "        \"activities\": [\n"
-            "          {\"time\": \"<time>\", \"place\": \"<place>\", \"description\": \"<details>\", \"expected_time\": \"<duration>\"}\n"
+            "          {\n"
+            "            \"time\": \"<time>\",\n"
+            "            \"place\": \"<place name>\",\n"
+            "            \"address\": \"<full address>\",\n"
+            "            \"description\": \"<details>\",\n"
+            "            \"expected_time\": \"<duration>\"\n"
+            "          }\n"
             "        ]\n"
             "      }\n"
             "    ]\n"
             "  }\n"
             "}\n\n"
-            "Based on this travel plan:\n\n" + combined_itinerary
+            f"Based on this plan:\n\n{combined_itinerary}"
         )
+
         messages_json = [
             {"role": "system", "content": "You are an expert travel planner."},
             {"role": "user", "content": json_prompt}
         ]
+        
         json_response = call_cerebras_api(messages_json)
-        print("Raw JSON response:", json_response)
-
         if json_response:
             json_match = re.search(r'(\{[\s\S]*\})', json_response)
             if json_match:
                 json_str = json_match.group(1)
                 final_json = json.loads(json_str)
                 
+                # Add geocoding for each activity
+                for day in final_json['trip']['itinerary']:
+                    for activity in day['activities']:
+                        lat, lon = geocode_address(activity['address'])
+                        if lat and lon:
+                            activity['latitude'] = lat
+                            activity['longitude'] = lon
+                
                 # Store in database if user is logged in
                 if 'user_id' in session:
-                    trip_id = store_json_itinerary(final_json, session['user_id'])
+                    trip_id = db.store_json_itinerary(final_json, session['user_id'])
                     if trip_id:
                         session['current_trip_id'] = trip_id
-
-                return jsonify({"finalized": True})
+                        return jsonify({"finalized": True, "trip_id": trip_id})
 
         return jsonify({"error": "Failed to generate itinerary"}), 500
 
@@ -348,6 +405,14 @@ def map_view():
         map_data = None
     
     return render_template('map_view.html', user=user, map_data=map_data)
+
+# Add the dynamic planning route
+@app.route('/dynamic_plan')
+@login_required
+def dynamic_plan():
+    """Renders the dynamic planning page."""
+    user = get_current_user()
+    return render_template('dynamic_plan.html', user=user)
 
 @app.route('/day_planner')
 def day_planner():
@@ -474,6 +539,97 @@ def logout():
     session.pop('user_id', None)
     flash('Logged out successfully!', 'success')
     return redirect(url_for('index'))
+
+# Add these new routes
+@app.route('/api/request_contact', methods=['POST'])
+@login_required
+def request_contact():
+    """Handle contact request between travelers."""
+    try:
+        traveler_id = request.json.get('traveler_id')
+        if not traveler_id:
+            return jsonify({"error": "No traveler specified"}), 400
+
+        # Create contact request
+        token = db.create_contact_request(session['user_id'], traveler_id)
+        if not token:
+            return jsonify({"error": "Contact request already exists"}), 400
+
+        # Get user details
+        from_user = db.get_user_by_id(session['user_id'])
+        to_user = db.get_user_by_id(traveler_id)
+
+        if not to_user or not to_user['email']:
+            return jsonify({"error": "Unable to send request"}), 400
+
+        # Send email
+        approval_link = url_for('approve_contact', token=token, _external=True)
+        send_contact_request_email(to_user['email'], from_user['name'], approval_link)
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        print(f"Error in request_contact: {str(e)}")
+        return jsonify({"error": "An error occurred"}), 500
+
+@app.route('/approve_contact/<token>')
+def approve_contact(token):
+    """Handle contact request approval."""
+    try:
+        request = db.get_contact_request_by_token(token)
+        if not request:
+            flash('Invalid or expired request', 'error')
+            return redirect(url_for('index'))
+
+        if request['status'] != 'pending':
+            flash('This request has already been processed', 'info')
+            return redirect(url_for('index'))
+
+        if db.approve_contact_request(token):
+            # Get user details
+            from_user = db.get_user_by_id(request['from_user_id'])
+            to_user = db.get_user_by_id(request['to_user_id'])
+
+            # Send email to requester with the approved user's email
+            send_approval_email(from_user['email'], to_user['name'], to_user['email'])
+            
+            flash('Contact request approved! The other traveler will be notified.', 'success')
+        else:
+            flash('Unable to process request', 'error')
+
+        return redirect(url_for('index'))
+
+    except Exception as e:
+        print(f"Error in approve_contact: {str(e)}")
+        flash('An error occurred', 'error')
+        return redirect(url_for('index'))
+
+def send_contact_request_email(to_email, from_name, approval_link):
+    """Send contact request email."""
+    # TODO: Implement email sending
+    # For now, just print the email content
+    print(f"""
+    To: {to_email}
+    Subject: New Contact Request from {from_name}
+    
+    You have received a contact request from {from_name} on Musafir.
+    
+    To approve sharing your contact details, click here:
+    {approval_link}
+    """)
+
+def send_approval_email(to_email, approved_name, approved_email):
+    """Send approval notification email."""
+    # TODO: Implement email sending
+    # For now, just print the email content
+    print(f"""
+    To: {to_email}
+    Subject: Contact Request Approved
+    
+    Good news! {approved_name} has approved your contact request.
+    
+    You can now reach them at: {approved_email}
+    """)
 
 if __name__ == "__main__":
     app.run(debug=True)

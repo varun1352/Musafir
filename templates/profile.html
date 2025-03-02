@@ -24,35 +24,8 @@
   </div>
 
   <div class="profile-content">
-    <div class="profile-section">
-      <h2>Your Trips</h2>
-      <div class="trips-grid">
-        {% for trip in user.trips %}
-        <div class="trip-card">
-          <div class="trip-header">
-            <h3>{{ trip.destination }}</h3>
-            <span class="trip-status {{ trip.status }}">{{ trip.status }}</span>
-          </div>
-          <div class="trip-dates">
-            <i class="fas fa-calendar"></i>
-            <span>{{ trip.start_date }} - {{ trip.end_date }}</span>
-          </div>
-          <div class="trip-actions">
-            <a href="{{ url_for('view_itinerary', trip_id=trip.id) }}" class="btn-outline">
-              View Itinerary
-            </a>
-            {% if trip.status == "upcoming" %}
-            <a href="{{ url_for('map_view', trip_id=trip.id) }}" class="btn-primary">
-              View Map
-            </a>
-            {% endif %}
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-
-    <div class="profile-section">
+    <!-- Travel Preferences Section -->
+    <div class="profile-section preferences-section">
       <h2>Travel Preferences</h2>
       <div class="preferences-grid">
         {% for pref in user.preferences %}
@@ -63,12 +36,92 @@
         {% endfor %}
       </div>
     </div>
+
+    <!-- Upcoming Trips Section -->
+    <div class="profile-section">
+      <div class="section-header">
+        <h2>Upcoming Trips</h2>
+        <a href="{{ url_for('travel_planner') }}" class="btn-primary">
+          <i class="fas fa-plus"></i>
+          Plan New Trip
+        </a>
+      </div>
+      <div class="trips-grid">
+        {% for trip in user.trips %}
+        {% if trip.status == "upcoming" %}
+        <div class="trip-card">
+          <div class="trip-header">
+            <h3>{{ trip.destination }}</h3>
+            <span class="trip-status {{ trip.status }}">{{ trip.status }}</span>
+          </div>
+          <div class="trip-dates">
+            <i class="fas fa-calendar"></i>
+            <span>{{ trip.start_date }} - {{ trip.end_date }}</span>
+          </div>
+          <div class="trip-preview">
+            <!-- Show first few places from the itinerary -->
+            {% set places = get_trip_places(trip.id) %}
+            {% if places %}
+            <div class="places-preview">
+              {% for place in places[:3] %}
+              <div class="place-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>{{ place.name }}</span>
+              </div>
+              {% endfor %}
+              {% if places|length > 3 %}
+              <div class="place-item more">
+                <span>+{{ places|length - 3 }} more</span>
+              </div>
+              {% endif %}
+            </div>
+            {% endif %}
+          </div>
+          <div class="trip-actions">
+            <a href="{{ url_for('view_itinerary', trip_id=trip.id) }}" class="btn-outline">
+              View Itinerary
+            </a>
+            <a href="{{ url_for('map_view', trip_id=trip.id) }}" class="btn-primary">
+              View Map
+            </a>
+          </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Past Trips Section -->
+    <div class="profile-section">
+      <h2>Past Trips</h2>
+      <div class="trips-grid">
+        {% for trip in user.trips %}
+        {% if trip.status == "completed" %}
+        <div class="trip-card past">
+          <div class="trip-header">
+            <h3>{{ trip.destination }}</h3>
+            <span class="trip-status {{ trip.status }}">{{ trip.status }}</span>
+          </div>
+          <div class="trip-dates">
+            <i class="fas fa-calendar"></i>
+            <span>{{ trip.start_date }} - {{ trip.end_date }}</span>
+          </div>
+          <div class="trip-actions">
+            <a href="{{ url_for('view_itinerary', trip_id=trip.id) }}" class="btn-outline">
+              View Memories
+            </a>
+          </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
   </div>
 </div>
 
 <style>
 .profile-container {
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
 }
@@ -147,9 +200,19 @@
   box-shadow: var(--shadow);
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+  margin: 0;
+}
+
 .profile-section h2 {
   color: var(--text-dark);
-  margin-bottom: 1.5rem;
   font-size: 1.5rem;
 }
 
@@ -207,9 +270,33 @@
   margin-bottom: 1rem;
 }
 
+.trip-preview {
+  margin: 1rem 0;
+}
+
+.places-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.place-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-light);
+  font-size: 0.875rem;
+}
+
+.place-item.more {
+  color: var(--primary);
+  font-weight: 500;
+}
+
 .trip-actions {
   display: flex;
   gap: 1rem;
+  margin-top: 1rem;
 }
 
 .preferences-grid {
@@ -258,6 +345,12 @@
   
   .trips-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
   }
 }
 </style>

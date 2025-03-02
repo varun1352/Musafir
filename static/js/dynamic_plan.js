@@ -270,33 +270,19 @@ function finishPlanning() {
   loadingOverlay.innerHTML = `
     <div class="loading-content">
       <div class="loading-spinner"></div>
-      <p>Saving your itinerary...</p>
+      <p>Generating your itinerary...</p>
     </div>
   `
   document.body.appendChild(loadingOverlay)
 
   // Convert accepted places to the format expected by the backend
-  const itinerary = {
-    trip: {
-      destination: "Custom Trip",
-      dates: {
-        start: new Date().toISOString().split("T")[0],
-        end: new Date().toISOString().split("T")[0],
-      },
-      itinerary: [
-        {
-          day: 1,
-          date: new Date().toISOString().split("T")[0],
-          activities: acceptedPlaces.map((place) => ({
-            time: calculateTimeSlot(0, place.timeSpent).split(" - ")[0],
-            place: place.name,
-            description: place.description,
-            expected_time: `${place.timeSpent} hours`,
-          })),
-        },
-      ],
-    },
-  }
+  const places = acceptedPlaces.map((place) => ({
+    name: place.name,
+    description: place.description,
+    time: calculateTimeSlot(0, place.timeSpent),
+    timeSpent: place.timeSpent,
+    address: place.address || `${place.name}, New York, NY`, // Add default address if none provided
+  }))
 
   // Send to backend
   fetch("/finalize_trip", {
@@ -304,15 +290,18 @@ function finishPlanning() {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(itinerary),
+    body: JSON.stringify({
+      dynamic_plan: true,
+      places: places,
+    }),
   })
     .then((response) => response.json())
     .then((data) => {
       document.body.removeChild(loadingOverlay)
       if (data.finalized) {
-        window.location.href = "/view_itinerary"
+        window.location.href = `/view_itinerary?trip_id=${data.trip_id}`
       } else {
-        alert("Failed to save itinerary. Please try again.")
+        alert("Failed to generate itinerary. Please try again.")
       }
     })
     .catch((error) => {
