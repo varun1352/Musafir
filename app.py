@@ -631,6 +631,11 @@ def send_approval_email(to_email, approved_name, approved_email):
     You can now reach them at: {approved_email}
     """)
 
+@app.route("/health_check")
+def health_check():
+    return "App Deployed Successfully"
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))  # Render provides PORT, defaults to 5000 locally
+    app.run(host="0.0.0.0", port=port)  #
 
