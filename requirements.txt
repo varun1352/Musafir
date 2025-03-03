@@ -1,0 +1,8 @@
+Flask
+Werkzeug
+requests
+cerebras-cloud-sdk
+python-dotenv
+sqlite3
+names
+Faker
